@@ -1,7 +1,10 @@
 {
-  "name": "Stresskeempat - Nota Subjek",
-  "short_name": "Stress4",
-  "start_url": "/",
+  "id": "https://sayaz.github.io/Stresscode-4/",
+  "start_url": "https://sayaz.github.io/Stresscode-4/",
+  "scope": "https://sayaz.github.io/Stresscode-4/",
+  "name": "Stresscode-4 - Nota Subjek",
+  "short_name": "Stresscode-4",
+  "description": "Awan nota subjek dengan versi, topik dan subtopik.",
   "display": "standalone",
   "background_color": "#020617",
   "theme_color": "#020617",
@@ -19,18 +22,15 @@
   ],
   "screenshots": [
     {
-      "src": "screenshots/wide1.png",
+      "src": "screenshots/wide.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "screenshots/mobile2.png",
+      "src": "screenshots/mobile.png",
       "sizes": "360x640",
       "type": "image/png"
     }
   ]
 }
-
-
-
