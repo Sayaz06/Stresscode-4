@@ -1,5 +1,5 @@
 // ✅ Service Worker untuk Stresscode-4
-const CACHE_NAME = "stresscode4-cache-v16";
+const CACHE_NAME = "stresscode4-cache-v17";
 
 const ASSETS = [
   "./",
@@ -51,3 +51,4 @@ self.addEventListener("fetch", event => {
     })
   );
 });
+
