@@ -1,41 +1,2166 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Stresske-4 - Nota Subjek</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KodEdit">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>KodEdit</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0f1a;--surface:#1a1a2e;--surface2:#16213e;--surface3:#0d1b2a;
+  --accent:#4cc9f0;--accent2:#7b2ff7;--green:#06d6a0;--red:#ef476f;
+  --amber:#ffd166;--text:#e2e8f0;--text2:#94a3b8;--border:#2d3748;
+  --line-h:22px;--font-mono:'Courier New',monospace;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+#app{display:flex;flex-direction:column;height:100vh;height:100dvh}
 
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#020617" />
+/* TOPBAR */
+#topbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;overflow-x:auto;-webkit-overflow-scrolling:touch}
+#topbar::-webkit-scrollbar{display:none}
+#topbar h1{font-size:15px;font-weight:600;color:var(--accent);flex:1}
+.top-btn{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:16px;flex-shrink:0}
+.top-btn:active{background:var(--border)}
+.top-btn.accent{background:var(--accent2);border-color:var(--accent2)}
+.top-btn.green{background:var(--green);border-color:var(--green);color:#0f0f1a}
 
-  <link rel="stylesheet" href="styles.css" />
+/* TOOLBAR */
+#toolbar-wrap{display:flex;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0}
+#toolbar-gutter{width:48px;flex-shrink:0;border-right:1px solid var(--border)}
+#toolbar{display:flex;align-items:center;gap:6px;padding:6px 12px;flex:1;overflow-x:auto}
+#toolbar::-webkit-scrollbar{display:none}
+.tool-btn{display:flex;align-items:center;gap:4px;padding:0 12px;height:32px;border-radius:6px;border:1px solid rgba(76,201,240,0.3);background:rgba(76,201,240,0.08);color:var(--accent);cursor:pointer;font-size:12px;white-space:nowrap;flex-shrink:0;font-weight:500}
+.tool-btn:active{background:var(--accent);color:#0f0f1a;border-color:var(--accent)}
 
-  <!-- Icon (optional, boleh tukar) -->
-  <link rel="icon" type="image/png" href="icons/icon-192.png" />
+/* DROP ZONE */
+#drop-zone{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);z-index:150;opacity:0;pointer-events:none;transition:opacity 0.3s}
+#drop-zone.show{opacity:1;pointer-events:all}
+#drop-zone-inner{background:var(--accent2);color:#fff;padding:14px 28px;border-radius:12px;font-size:14px;font-weight:600;border:2px dashed rgba(255,255,255,0.4);white-space:nowrap}
+#drop-zone.drag-over #drop-zone-inner{background:var(--green);color:#0f0f1a}
 
-  <!-- Quill rich-text editor CSS (CDN) -->
-  <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet" />
+/* SELECTION BAR */
+#sel-bar{display:none;align-items:center;gap:8px;padding:6px 12px;background:rgba(76,201,240,0.1);border-top:1px solid rgba(76,201,240,0.3);flex-shrink:0}
+#sel-bar.show{display:flex}
+.sel-bar-info{font-size:12px;color:var(--accent);flex:1}
+.sel-bar-btn{padding:4px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text2);font-size:12px;cursor:pointer}
+.sel-bar-btn:active{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+.sel-bar-btn.cut{border-color:var(--red);color:var(--red)}
+.sel-bar-btn.cut:active{background:var(--red);color:#fff}
+
+/* FILE TREE */
+#filetree-wrap{display:none;flex-direction:column;border-bottom:2px solid var(--border);background:var(--surface3);flex-shrink:0}
+#filetree-wrap.show{display:flex}
+#filetree-header{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+#filetree-path{font-size:11px;color:var(--accent);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-mono)}
+#filetree-list{overflow-x:auto;overflow-y:hidden;display:flex;flex-direction:row;gap:4px;padding:6px 10px;-webkit-overflow-scrolling:touch;min-height:44px;align-items:center}
+#filetree-list::-webkit-scrollbar{display:none}
+.ft-item{display:flex;align-items:center;gap:4px;padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0;color:var(--text2)}
+.ft-item:active{background:var(--accent);color:#0f0f1a;border-color:var(--accent)}
+.ft-item.ft-active{border-color:var(--green);color:var(--green)}
+.ft-item.ft-dir{color:var(--amber);border-color:rgba(255,209,102,0.3)}
+.ft-back{color:var(--accent);border-color:rgba(76,201,240,0.3)}
+
+/* EDITOR */
+#editor-wrap{flex:1;overflow:hidden;display:flex;flex-direction:column;position:relative}
+#editor-container{display:flex;flex:1;overflow:hidden}
+#line-nums{width:48px;overflow:hidden;background:var(--surface3);border-right:1px solid var(--border);flex-shrink:0;user-select:none;-webkit-user-select:none;position:relative}
+#line-nums-inner{position:absolute;top:0;left:0;right:0;padding:12px 0 0 0;font-family:var(--font-mono);font-size:13px;color:var(--text2);text-align:right}
+#line-nums-inner div{height:var(--line-h);line-height:var(--line-h);font-size:12px;padding-right:8px}
+#code-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;position:relative}
+#code-input{display:block;width:max-content;min-width:100%;min-height:100%;padding:12px 16px 12px 10px;font-family:var(--font-mono);font-size:13px;line-height:var(--line-h);background:transparent;border:none;outline:none;color:var(--text);caret-color:var(--accent);resize:none;white-space:pre;overflow:visible;-webkit-overflow-scrolling:touch}
+
+/* STATUS BAR */
+#statusbar{display:flex;align-items:center;gap:12px;padding:4px 12px;background:var(--surface3);border-top:1px solid var(--border);flex-shrink:0;font-size:11px;color:var(--text2)}
+#status-file{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--accent)}
+#status-fb{color:var(--green);font-size:11px;flex-shrink:0}
+
+/* PANELS */
+.panel{position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:2px solid var(--border);border-radius:16px 16px 0 0;z-index:100;transform:translateY(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);max-height:88vh;display:flex;flex-direction:column}
+.panel.open{transform:translateY(0)}
+.panel-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:10px auto 0;flex-shrink:0}
+.panel-title{padding:10px 16px 8px;font-weight:600;font-size:14px;color:var(--text);border-bottom:1px solid var(--border);flex-shrink:0}
+.panel-body{padding:14px;overflow-y:auto;flex:1}
+.panel-footer{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap}
+
+/* INPUTS */
+.field-label{font-size:11px;color:var(--text2);margin-bottom:5px}
+.field{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--font-mono);font-size:13px;outline:none;resize:vertical;min-height:70px}
+.field:focus{border-color:var(--accent)}
+.field-sm{min-height:unset!important;height:44px;resize:none}
+.btn{padding:10px 16px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;cursor:pointer;font-weight:500;flex:1}
+.btn:active{opacity:0.8}
+.btn.primary{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.btn.success{background:var(--green);border-color:var(--green);color:#0f0f1a}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn.amber{background:var(--amber);border-color:var(--amber);color:#0f0f1a}
+
+/* SEARCH */
+.result-item{padding:8px 10px;background:var(--surface2);border-radius:8px;margin-bottom:6px;font-family:var(--font-mono);font-size:12px;cursor:pointer;border:1px solid var(--border)}
+.result-item:active{border-color:var(--accent)}
+.result-line{color:var(--accent);font-size:11px;margin-bottom:3px}
+.result-text{color:var(--text);word-break:break-all;white-space:pre-wrap}
+.result-count{font-size:12px;color:var(--text2);margin-bottom:8px}
+
+/* COMPARE */
+.compare-old{background:rgba(239,71,111,0.1);border-left:3px solid var(--red);padding:8px 10px;border-radius:0 8px 8px 0;font-family:var(--font-mono);font-size:12px;white-space:pre-wrap;word-break:break-all;color:var(--text);margin-bottom:6px}
+.compare-new{background:rgba(6,214,160,0.1);border-left:3px solid var(--green);padding:8px 10px;border-radius:0 8px 8px 0;font-family:var(--font-mono);font-size:12px;white-space:pre-wrap;word-break:break-all;color:var(--text)}
+.compare-label{font-size:10px;font-weight:600;margin-bottom:4px}
+.compare-label.old{color:var(--red)}
+.compare-label.new{color:var(--green)}
+
+/* NOTIF */
+#notif{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 16px;font-size:13px;z-index:200;opacity:0;transition:opacity 0.2s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+#notif.show{opacity:1}
+#notif.ok{border-color:var(--green);color:var(--green)}
+#notif.err{border-color:var(--red);color:var(--red)}
+#notif.info{border-color:var(--accent);color:var(--accent)}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:90;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.overlay.show{opacity:1;pointer-events:all}
+
+/* STORAGE NOTE */
+.storage-note{background:rgba(76,201,240,0.08);border:1px solid rgba(76,201,240,0.3);border-radius:8px;padding:10px 12px;font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:12px}
+.storage-note strong{color:var(--accent)}
+
+/* FILE LIST */
+.file-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;border:1px solid var(--border);cursor:pointer}
+.file-item:active{border-color:var(--accent)}
+.file-item.active-file{border-color:var(--green)}
+.file-icon{font-size:18px;flex-shrink:0}
+.file-info{flex:1;overflow:hidden}
+.file-name{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-meta{font-size:11px;color:var(--text2);margin-top:2px}
+.file-act{padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-size:11px;cursor:pointer;flex-shrink:0}
+.file-act:active{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.file-del{padding:4px 8px;border-radius:6px;border:1px solid var(--red);background:transparent;color:var(--red);font-size:11px;cursor:pointer;flex-shrink:0}
+.file-del:active{background:var(--red);color:#fff}
+
+/* LOGIN SCREEN */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px}
+#login-screen.hide{display:none}
+#login-screen h2{font-size:22px;color:var(--accent);margin-bottom:8px}
+#login-screen p{font-size:13px;color:var(--text2);margin-bottom:24px;text-align:center}
+.login-field{width:100%;max-width:320px;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;margin-bottom:12px}
+.login-field:focus{border-color:var(--accent)}
+.login-btn{width:100%;max-width:320px;padding:13px;border-radius:10px;border:none;background:var(--accent2);color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px}
+.login-btn:active{opacity:0.85}
+#login-msg{font-size:13px;color:var(--red);text-align:center;min-height:20px;margin-top:4px}
+
+/* NAV TABS */
+#nav-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.nav-tab{flex:1;padding:10px;text-align:center;font-size:12px;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* INFO */
+.info-section{margin-bottom:14px}
+.info-section h3{font-size:13px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.info-row{display:flex;gap:8px;margin-bottom:5px;font-size:12px;color:var(--text2);line-height:1.5}
+.info-row span:first-child{color:var(--amber);flex-shrink:0}
+
+/* UNDO TOAST */
+#undo-toast{position:absolute;top:8px;right:8px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;color:var(--text2);z-index:5;pointer-events:none;opacity:0;transition:opacity 0.2s}
+
+/* LONG PRESS */
+#lp-ring{position:fixed;width:48px;height:48px;border-radius:50%;border:2px solid var(--accent);pointer-events:none;z-index:50;display:none;transform:translate(-50%,-50%);transition:transform 0.25s,opacity 0.25s}
+#lp-ring.show{display:block}
+#lp-ring.pop{transform:translate(-50%,-50%) scale(1.4);opacity:0}
+
+/* EMPTY STATE */
+#empty-state{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;padding:32px;text-align:center}
+#empty-state.show{display:flex}
+#empty-state h2{font-size:16px;color:var(--text)}
+#empty-state p{font-size:13px;color:var(--text2);line-height:1.6}
+
+/* UNHIGHLIGHT BAR */
+#unhighlight-bar{display:none;padding:8px 14px;background:rgba(6,214,160,0.1);border-top:1px solid rgba(6,214,160,0.3);flex-shrink:0}
+</style>
 </head>
 <body>
-  <div id="app-root">
-    <!-- App akan di-render oleh JS -->
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div style="font-size:48px;margin-bottom:16px">⌨</div>
+  <h2>KodEdit</h2>
+  <p>Log masuk untuk mula edit dan simpan fail anda ke cloud</p>
+  <input class="login-field" id="login-email" type="email" placeholder="Email">
+  <input class="login-field" id="login-pass" type="password" placeholder="Kata laluan">
+  <button class="login-btn" onclick="doLogin()">Log Masuk</button>
+  <div style="display:flex;align-items:center;gap:10px;width:100%;max-width:320px;margin:8px 0">
+    <div style="flex:1;height:1px;background:var(--border)"></div>
+    <span style="font-size:12px;color:var(--text2)">atau</span>
+    <div style="flex:1;height:1px;background:var(--border)"></div>
+  </div>
+  <input class="login-field" id="login-pin" type="password" inputmode="numeric" maxlength="6" placeholder="Admin PIN" style="letter-spacing:4px;text-align:center">
+  <button class="login-btn" onclick="doLoginPin()" style="background:var(--surface2);border:1px solid var(--border)">Masuk dengan PIN</button>
+  <div id="login-msg"></div>
+</div>
+
+<div id="app">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <h1>⌨ KodEdit</h1>
+    <button class="top-btn" onclick="openPanel('files-panel')" title="Fail">📁</button>
+    <button class="top-btn" onclick="triggerUpload()" title="Upload">⬆</button>
+    <button class="top-btn green" onclick="backupToFirebase()" title="Simpan ke Firebase">☁</button>
+    <button class="top-btn accent" onclick="downloadFile()" title="Download">⬇</button>
+<button class="top-btn" onclick="previewHTML()" title="Preview" style="width:auto;padding:0 10px;font-size:13px">👁 Preview</button>
+    <button class="top-btn" onclick="openPanel('github-panel')" title="Deploy ke GitHub" style="width:auto;padding:0 10px;font-size:13px;border-color:rgba(255,255,255,0.3);color:var(--text)">🚀 Deploy</button>
+
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+  <!-- TOOLBAR -->
+  <div id="toolbar-wrap"><div id="toolbar-gutter"></div><div id="toolbar">
+    <button class="tool-btn" onclick="openPanel('replace-panel')">🔄 Ganti</button>
+    <button class="tool-btn" id="btn-pilih" onclick="toggleSelMode()">☰ Pilih</button>
+    <button class="tool-btn" onclick="doUndo()">↩ Undo</button>
+    <button class="tool-btn" onclick="doRedo()">↪ Redo</button>
+    <button class="tool-btn" onclick="jumpToLine()">≡ Baris</button>
+    <button class="tool-btn" onclick="copyAll()">📋 Salin Semua</button>
+    <button class="tool-btn" onclick="pasteAll()">📥 Tampal Semua</button>
+    <button class="tool-btn" onclick="openPanel('info-panel')">ℹ Panduan</button>
+    <button class="tool-btn" id="btn-filetree" onclick="toggleFileTree()">📁 Repo</button>
+  </div></div>
 
-  <!-- Quill rich-text editor JS (CDN) -->
-  <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
+  <!-- DROP ZONE -->
+  <div id="drop-zone"><div id="drop-zone-inner">⬇ Seret fail ke sini untuk buka</div></div>
 
-  <!-- App scripts -->
-  <script src="firebase-config.js"></script>
-  <script src="state.js"></script>
-  <script src="data.js"></script>
-  <script src="auth.js"></script>
-  <script src="ui.js"></script>
-  <script src="app.js"></script>
+  <!-- SELECTION BAR -->
+  <div id="sel-bar">
+    <span class="sel-bar-info" id="sel-bar-info">0 baris dipilih</span>
+    <button class="sel-bar-btn" onclick="copySelected()">Salin</button>
+    <button class="sel-bar-btn cut" onclick="cutSelected()">Potong</button>
+    <button class="sel-bar-btn" onclick="openReplaceFromSel()">Ganti</button>
+    <button class="sel-bar-btn" onclick="clearSelection()">✕</button>
+  </div>
+
+  <!-- FILE TREE -->
+  <div id="filetree-wrap">
+    <div id="filetree-header">
+      <span style="font-size:14px">📁</span>
+      <span id="filetree-path">Tiada repo dipilih</span>
+      <button class="tool-btn" onclick="toggleFileTree()" style="padding:3px 8px;font-size:11px">✕ Tutup</button>
+    </div>
+    <div id="filetree-list"></div>
+  </div>
+
+  <!-- EDITOR -->
+  <div id="editor-wrap">
+    <div id="editor-container">
+      <div id="line-nums"><div id="line-nums-inner"></div></div>
+      <div id="code-wrap">
+        <textarea id="code-input" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" placeholder="Upload fail atau taip kod di sini..."></textarea>
+      </div>
+    </div>
+    <div id="undo-toast"></div>
+    <div id="unhighlight-bar">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12px;color:var(--green);flex:1" id="replace-done-msg"></span>
+        <button class="tool-btn" onclick="unhighlightDone()" style="padding:4px 10px;border-color:var(--green);color:var(--green)">✕ Unhighlight</button>
+      </div>
+    </div>
+    <div id="empty-state" style="display:none">
+      <div style="font-size:48px">📂</div>
+      <h2>Tiada fail dibuka</h2>
+      <p>Taip terus atau upload fail</p>
+      <button class="btn primary" style="max-width:180px;flex:none" onclick="triggerUpload()">Upload Fail</button>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="statusbar">
+    <span id="status-file">Tiada fail</span>
+    <span id="status-fb"></span>
+    <span id="status-pos">B:1 L:1</span>
+    <span id="status-sel" style="color:var(--amber)"></span>
+  </div>
+</div>
+
+<!-- OVERLAY -->
+<div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
+<div id="lp-ring"></div>
+
+<!-- REPLACE PANEL -->
+<div class="panel" id="replace-panel">
+  <div class="panel-handle"></div>
+  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0">
+    <div class="nav-tab active" id="rp-tab-single" onclick="rpShowTab('single')" style="flex:1">🔄 Ganti</div>
+    <div class="nav-tab" id="rp-tab-bulk" onclick="rpShowTab('bulk')" style="flex:1">⚡ Ganti Pukal</div>
+  </div>
+  <div class="panel-body">
+    <div id="rp-single-view">
+      <div class="field-label">Cari kod ini (boleh multiline, space tidak ketat)</div>
+      <textarea class="field" id="replace-find" rows="4" placeholder="Tampal kod lama di sini..." oninput="liveHighlight()"></textarea>
+      <div style="display:flex;align-items:center;gap:8px;margin:6px 0">
+        <div id="find-status" style="font-size:12px;flex:1;min-height:18px"></div>
+        <button class="tool-btn" onclick="jumpToFound()" style="padding:4px 10px;flex-shrink:0">↵ Pergi</button>
+      </div>
+      <div class="field-label">Ganti dengan</div>
+      <textarea class="field" id="replace-with" rows="4" placeholder="Tampal kod baru di sini..."></textarea>
+      <div id="replace-preview" style="margin-top:10px;display:none">
+        <div class="compare-label old">— KOD LAMA</div>
+        <div class="compare-old" id="preview-old"></div>
+        <div class="compare-label new" style="margin-top:6px">+ KOD BARU</div>
+        <div class="compare-new" id="preview-new"></div>
+        <div style="font-size:12px;color:var(--text2);margin-top:6px" id="preview-count"></div>
+      </div>
+    </div>
+    <div id="rp-bulk-view" style="display:none">
+      <div class="storage-note">Tampal output AI dalam format:<br><strong>Cari:</strong><br>[kod lama]<br><strong>Ganti:</strong><br>[kod baru]<br><br>Boleh ada banyak blok berturutan.</div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:6px">
+        <button class="tool-btn" onclick="pasteToBulk()" style="padding:4px 12px">📋 Paste</button>
+      </div>
+      <textarea class="field" id="bulk-input" rows="10" placeholder="Tampal semua blok Cari/Ganti di sini..." oninput="liveBulkPreview()"></textarea>
+      <div id="bulk-status" style="font-size:12px;margin-top:8px;min-height:18px;color:var(--text2)"></div>
+    </div>
+  </div>
+  <div class="panel-footer" id="rp-footer-single">
+    <button class="btn" onclick="previewReplace()">Preview</button>
+    <button class="btn success" onclick="doReplace()">Ganti Semua</button>
+    <button class="btn" onclick="clearReplace()">🗑 Clear</button>
+    <button class="btn danger" onclick="closeAllPanels()">Batal</button>
+  </div>
+  <div class="panel-footer" id="rp-footer-bulk" style="display:none">
+    <button class="btn" onclick="clearBulk()">🗑 Clear</button>
+    <button class="btn success" onclick="doBulkReplace()">⚡ Ganti Pukal</button>
+    <button class="btn danger" onclick="closeAllPanels()">Batal</button>
+  </div>
+</div>
+
+<!-- GITHUB PANEL -->
+<div class="panel" id="github-panel">
+  <div class="panel-handle"></div>
+  <div class="panel-title">🚀 Deploy ke GitHub</div>
+  <div style="display:flex;border-bottom:1px solid var(--border);flex-shrink:0">
+    <div class="nav-tab active" id="gh-tab-list" onclick="ghShowTab('list')" style="flex:1">📋 Senarai App</div>
+    <div class="nav-tab" id="gh-tab-token" onclick="ghShowTab('token')" style="flex:1">🔑 API Key</div>
+  </div>
+  <div class="panel-body">
+
+    <!-- SENARAI APP -->
+    <div id="gh-list-view">
+      <div id="gh-deploy-original" style="display:none;margin-bottom:10px;padding:10px;background:rgba(6,214,160,0.1);border:1px solid rgba(6,214,160,0.3);border-radius:8px">
+        <div style="font-size:12px;color:var(--green);margin-bottom:6px" id="gh-original-info"></div>
+        <div style="display:flex;gap:6px">
+          <button class="btn success" id="btn-deploy-orig" style="flex:1" onclick="ghDeployOriginal()">🚀 Deploy to Original Path</button>
+          <button class="btn" style="flex:none;padding:6px 10px;border-color:var(--accent);color:var(--accent)" onclick="ghCheckOrigStatus()">🔍</button>
+        </div>
+        <div id="gh-orig-status" style="font-size:11px;margin-top:6px;min-height:14px"></div>
+        <div id="gh-orig-lock-note" style="display:none;font-size:11px;margin-top:4px;color:var(--amber);font-style:italic">⚠ Deployment in progress — all deploy buttons are locked to prevent SHA conflicts. Press 🔍 to check build status.</div>
+      </div>
+      <div id="gh-apps-list"></div>
+      <div style="text-align:center;margin-top:8px">
+        <button class="btn primary" style="max-width:180px" onclick="ghShowTab('form');ghNewConfig()">➕ Tambah App Baru</button>
+      </div>
+    </div>
+
+    <!-- BROWSE REPO -->
+    <div id="gh-browse-view" style="display:none">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <button class="tool-btn" onclick="ghBrowseBack()" id="gh-browse-back" style="padding:4px 10px;display:none">← Balik</button>
+        <div id="gh-browse-path" style="font-size:12px;color:var(--accent);flex:1;word-break:break-all"></div>
+      </div>
+      <div id="gh-browse-list"></div>
+    </div>
+
+    <!-- FORM TAMBAH/EDIT APP -->
+    <div id="gh-form-view" style="display:none">
+      <input type="hidden" id="gh-edit-idx" value="-1">
+      <div class="field-label">Nama App (untuk rujukan)</div>
+      <input class="field field-sm" id="gh-name" type="text" placeholder="contoh: App Istigfar">
+      <div class="field-label" style="margin-top:10px">Owner / Repo</div>
+      <input class="field field-sm" id="gh-repo" type="text" placeholder="sayaz06/nama-repo">
+      <div class="field-label" style="margin-top:10px">Path fail dalam repo</div>
+      <input class="field field-sm" id="gh-path" type="text" placeholder="index.html">
+      <div class="field-label" style="margin-top:10px">Branch</div>
+      <input class="field field-sm" id="gh-branch" type="text" placeholder="main">
+    </div>
+
+    <!-- TAB API KEY -->
+    <div id="gh-token-view" style="display:none">
+      <div class="storage-note">Token ini digunakan untuk semua app. Jana dari: GitHub → Settings → Developer settings → Personal access tokens → Generate new token (classic) → tick <strong>repo</strong>.</div>
+      <div class="field-label" style="margin-top:10px">GitHub Token</div>
+      <input class="field field-sm" id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxx">
+      <div id="gh-token-status" style="font-size:12px;margin-top:8px;color:var(--text2)"></div>
+    </div>
+
+    <div id="gh-status" style="font-size:12px;margin-top:10px;min-height:18px;color:var(--text2)"></div>
+  </div>
+  <div class="panel-footer" id="gh-footer-list">
+    <button class="btn" onclick="closeAllPanels()">Tutup</button>
+  </div>
+  <div class="panel-footer" id="gh-footer-form" style="display:none">
+    <button class="btn" onclick="ghShowTab('list')">Batal</button>
+    <button class="btn amber" onclick="ghSaveConfig()">💾 Simpan</button>
+  </div>
+  <div class="panel-footer" id="gh-footer-token" style="display:none">
+    <button class="btn" onclick="ghShowTab('list')">Batal</button>
+    <button class="btn amber" onclick="ghSaveToken()">💾 Simpan Token</button>
+  </div>
+  <div class="panel-footer" id="gh-footer-browse" style="display:none">
+    <button class="btn" onclick="ghShowTab('list')">← Senarai App</button>
+  </div>
+</div>
+
+<!-- FILES PANEL -->
+<div class="panel" id="files-panel">
+  <div class="panel-handle"></div>
+  <div id="nav-tabs">
+    <div class="nav-tab active" onclick="showTab('cloud')">☁ Firebase</div>
+    <div class="nav-tab" onclick="showTab('local')">📱 Tempatan</div>
+    <div class="nav-tab" onclick="showTab('backup')">🔄 Backup</div>
+  </div>
+  <div class="panel-body" id="files-body"></div>
+<div class="panel-footer">
+    <button class="btn" onclick="closeAllPanels()">Tutup</button>
+    <button class="btn primary" onclick="triggerUpload();closeAllPanels()">Upload Baru</button>
+    <button class="btn success" onclick="newCloudFile()">+ Fail Baru</button>
+    <button class="btn danger" onclick="closeFile();closeAllPanels()">✕ Tutup Fail</button>
+<button class="btn" style="border-color:var(--red);color:var(--red)" onclick="doLogout()">↩ Log Keluar</button>
+    <button class="btn" id="btn-set-pin" style="display:none;border-color:var(--amber);color:var(--amber)" onclick="setAdminPin()">🔑 Set PIN</button>
+  </div>
+</div>
+
+<!-- INFO PANEL -->
+<div class="panel" id="info-panel">
+  <div class="panel-handle"></div>
+  <div class="panel-title">📖 Panduan Guna</div>
+  <div class="panel-body">
+    <div class="storage-note">
+      <strong>☁ Firestore:</strong> Fail kod disimpan dalam cloud — sync antara phone dan laptop. Fail besar (>800KB) auto simpan ke <strong>Firebase Storage</strong>. <strong>📱 localStorage:</strong> Cache tempatan sahaja — hilang bila clear cache browser.
+    </div>
+    <div class="info-section">
+      <h3>Flow Kerja</h3>
+      <div class="info-row"><span>1.</span><span>Edit kat phone → autosave ke Firebase bila keluar textarea</span></div>
+      <div class="info-row"><span>2.</span><span>Buka laptop → log masuk → fail dah ada dalam panel 📁</span></div>
+      <div class="info-row"><span>3.</span><span>Edit → autosave → deploy terus dari KodEdit</span></div>
+    </div>
+    <div class="info-section">
+      <h3>Simpan & Buka Fail</h3>
+      <div class="info-row"><span>☁</span><span>Butang ☁ — simpan fail semasa ke Firebase terus</span></div>
+      <div class="info-row"><span>📁</span><span>Butang 📁 — panel fail: tab Firebase, Tempatan, Backup</span></div>
+      <div class="info-row"><span>⬆</span><span>Butang ⬆ — upload fail dari telefon/laptop</span></div>
+      <div class="info-row"><span>⬇</span><span>Butang ⬇ — download fail ke peranti</span></div>
+    </div>
+    <div class="info-section">
+      <h3>Ganti Kod</h3>
+      <div class="info-row"><span>🔄</span><span>Tab Ganti — cari dan ganti satu blok kod, tidak kisah indent/space</span></div>
+      <div class="info-row"><span>⚡</span><span>Tab Ganti Pukal — tampal banyak blok Cari/Ganti sekaligus (format AI)</span></div>
+      <div class="info-row"><span>↵</span><span>Tekan Pergi untuk scroll dan highlight kod yang dijumpai</span></div>
+    </div>
+    <div class="info-section">
+      <h3>Pilih Baris</h3>
+      <div class="info-row"><span>1.</span><span>Tekan butang ☰ Pilih → tap baris mula</span></div>
+      <div class="info-row"><span>2.</span><span>Tap baris akhir → bar pilihan muncul</span></div>
+      <div class="info-row"><span>→</span><span>Boleh Salin, Potong, atau terus ke Ganti</span></div>
+    </div>
+    <div class="info-section">
+      <h3>Deploy ke GitHub</h3>
+      <div class="info-row"><span>🚀</span><span>Butang 🚀 Deploy — buka panel deploy, pilih app, tekan Deploy</span></div>
+      <div class="info-row"><span>📂</span><span>Butang 📂 Browse — browse fail dalam repo, buka terus ke editor</span></div>
+      <div class="info-row"><span>🔍</span><span>Butang 🔍 — check status GitHub Pages build</span></div>
+      <div class="info-row"><span>→</span><span>Selepas deploy, button diblock sehingga Pages siap build</span></div>
+    </div>
+    <div class="info-section">
+      <h3>Preview</h3>
+      <div class="info-row"><span>👁</span><span>Butang Preview — buka HTML dalam tab baru + auto simpan ke Firebase</span></div>
+      <div class="info-row"><span>→</span><span>Preview guna domain GitHub Pages — Firebase dan JS berfungsi</span></div>
+    </div>
+    <div class="info-section">
+      <h3>Shortcut Desktop</h3>
+      <div class="info-row"><span>→</span><span>Ctrl+Z = Undo, Ctrl+Y = Redo, Ctrl+F = Buka Ganti, Ctrl+S = Download</span></div>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button class="btn" onclick="closeAllPanels()">Faham</button>
+  </div>
+</div>
+
+<input type="file" id="file-input" accept=".html,.htm,.js,.css,.txt,.json,.xml,.php,.py,.md" style="display:none" onchange="handleFileUpload(event)">
+<div id="notif"></div>
+
+<!-- FIREBASE SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<script>
+// ═══════════════════════════════════
+// FIREBASE CONFIG
+// ═══════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyD0hCVXad77dLVERiZLQGn3ne81hQFuqCY",
+  authDomain: "stress-places.firebaseapp.com",
+  projectId: "stress-places",
+  storageBucket: "stress-places.firebasestorage.app",
+  messagingSenderId: "137115285004",
+  appId: "1:137115285004:web:02d731b7d41012a4d1e029",
+  measurementId: "G-3V0GMET040"
+};
+firebase.initializeApp(firebaseConfig);
+var auth = firebase.auth();
+var db = firebase.firestore();
+var storage = firebase.storage();
+var currentUser = null;
+
+// Saiz maksimum Firestore (800KB selamat)
+var FIRESTORE_MAX = 800000;
+
+function fbStoragePath(name){
+  return 'users/'+currentUser.uid+'/files/'+name;
+}
+
+function saveToFirestore(name, content){
+  return fbCollection().doc(name).set({
+    name: name,
+    content: content,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    size: content.length,
+    inStorage: false
+  });
+}
+
+function saveToFirebaseStorage(name, content){
+  showNotif('Memuat naik ke Firebase Storage...','info');
+  var ref = storage.ref(fbStoragePath(name));
+  var blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+  return ref.put(blob).then(function(snapshot){
+    console.log('Storage upload ok:', snapshot.totalBytes, 'bytes');
+    return fbCollection().doc(name).set({
+      name: name,
+      content: '',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      size: content.length,
+      inStorage: true
+    });
+  }).catch(function(e){
+    console.log('Storage upload error:', e);
+    throw e;
+  });
+}
+
+function saveFileToFirebase(name, content){
+  if(content.length > FIRESTORE_MAX){
+    return saveToFirebaseStorage(name, content);
+  } else {
+    return saveToFirestore(name, content);
+  }
+}
+
+function loadFileFromFirebase(doc){
+  if(doc.inStorage){
+    showNotif('Memuatkan dari Firebase Storage...','info');
+    var ref = storage.ref(fbStoragePath(doc.name));
+    return new Promise(function(resolve, reject){
+      ref.getDownloadURL().then(function(url){
+        var xhr = new XMLHttpRequest();
+        xhr.responseType = 'text';
+        xhr.onload = function(){
+          if(xhr.status===200) resolve(xhr.response);
+          else reject(new Error('HTTP '+xhr.status));
+        };
+        xhr.onerror = function(){ reject(new Error('XHR error')); };
+        xhr.open('GET', url);
+        xhr.send();
+      }).catch(reject);
+    });
+  } else {
+    return Promise.resolve(doc.content||'');
+  }
+}
+
+// ═══════════════════════════════════
+// AUTH
+// ═══════════════════════════════════
+auth.onAuthStateChanged(function(user){
+  if(user){
+    currentUser = user;
+    document.getElementById('login-screen').classList.add('hide');
+    // tunjuk butang set PIN kalau admin
+    var btnPin = document.getElementById('btn-set-pin');
+    if(btnPin) btnPin.style.display = user.email===ADMIN_EMAIL ? 'block' : 'none';
+    loadFromStorage();
+    setupEditor();
+    setupLongPress();
+    setupDragDrop();
+    showNotif('Selamat datang: '+user.email,'ok');
+    document.getElementById('status-fb').textContent = '☁ '+user.email.split('@')[0];
+  } else {
+    currentUser = null;
+    document.getElementById('login-screen').classList.remove('hide');
+  }
+});
+
+var ADMIN_EMAIL = 'adha86614@gmail.com';
+
+function doLogin(){
+  var email = document.getElementById('login-email').value.trim();
+  var pass = document.getElementById('login-pass').value;
+  var msg = document.getElementById('login-msg');
+  if(!email||!pass){msg.textContent='Isi email dan kata laluan';return;}
+  msg.textContent='Log masuk...';
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(function(){ msg.textContent=''; })
+    .catch(function(e){
+      if(e.code==='auth/user-not-found'||e.code==='auth/invalid-credential'||e.code==='auth/invalid-login-credentials'){
+        msg.textContent='Email atau kata laluan salah';
+      } else {
+        msg.textContent=e.message||e.code;
+      }
+    });
+}
+
+function doLoginPin(){
+  var pin = document.getElementById('login-pin').value.trim();
+  var msg = document.getElementById('login-msg');
+  if(!pin||pin.length<4){msg.textContent='PIN mesti sekurang-kurangnya 4 digit';return;}
+  msg.textContent='Mengesahkan PIN...';
+  db.collection('admin').doc('pin').get().then(function(doc){
+    if(!doc.exists){msg.textContent='PIN belum ditetapkan';return;}
+    var savedPin = doc.data().pin;
+    if(pin !== savedPin){msg.textContent='PIN salah';return;}
+    msg.textContent='Log masuk...';
+    auth.signInWithEmailAndPassword(ADMIN_EMAIL, doc.data().pass)
+      .then(function(){ msg.textContent=''; })
+      .catch(function(e){ msg.textContent=e.message||e.code; });
+  }).catch(function(e){ msg.textContent='Gagal: '+e.message; });
+}
+
+document.getElementById('login-pass').addEventListener('keydown',function(e){
+  if(e.key==='Enter') doLogin();
+});
+document.getElementById('login-pin').addEventListener('keydown',function(e){
+  if(e.key==='Enter') doLoginPin();
+});
+
+function doLogout(){
+  if(!confirm('Log keluar?')) return;
+  auth.signOut().then(function(){
+    showNotif('Dah log keluar','info');
+  });
+}
+
+// ═══════════════════════════════════
+// GITHUB DEPLOY
+// ═══════════════════════════════════
+var _ghToken = '';
+var _ghConfigs = [];
+
+function ghFbDoc(){
+  return db.collection('users').doc(currentUser.uid).collection('settings').doc('github');
+}
+
+function ghLoadFromFirebase(callback){
+  if(!currentUser){ callback(); return; }
+  ghFbDoc().get().then(function(doc){
+    if(doc.exists){
+      var d = doc.data();
+      _ghToken = d.token||'';
+      _ghConfigs = d.configs||[];
+      _ghGlobalLock = d.globalLock||false;
+      if(_ghGlobalLock){
+        // check sama ada masih ada app yg blocked
+        var anyBlocked = _ghConfigs.some(function(c){ return c.deployBlocked; });
+        if(!anyBlocked){
+          // tiada app blocked — release lock terus
+          _ghGlobalLock = false;
+          ghFbDoc().update({globalLock: false}).catch(function(){});
+        } else {
+          setTimeout(function(){ ghSetGlobalLock(true); },500);
+        }
+      }
+    }
+    if(callback) callback();
+  }).catch(function(){ if(callback) callback(); });
+}
+
+function ghSaveToFirebase(){
+  if(!currentUser){ showNotif('Log masuk dahulu','err'); return; }
+  return ghFbDoc().set({
+    token: _ghToken,
+    configs: _ghConfigs,
+    globalLock: _ghGlobalLock||false
+  });
+}
+
+function ghGetConfigs(){ return _ghConfigs; }
+
+function ghSaveConfigs(list){
+  _ghConfigs = list;
+  ghSaveToFirebase().then(function(){
+    showNotif('Disimpan ke Firebase','ok');
+  }).catch(function(e){ showNotif('Gagal simpan: '+e.message,'err'); });
+}
+
+function ghGetToken(){ return _ghToken; }
+
+function ghSaveToken(){
+  var token=document.getElementById('gh-token').value.trim();
+  if(!token){showNotif('Isi token dahulu','err');return;}
+  _ghToken = token;
+  ghSaveToFirebase().then(function(){
+    document.getElementById('gh-token-status').style.color='var(--green)';
+    document.getElementById('gh-token-status').textContent='✓ Token disimpan ke Firebase';
+    showNotif('Token disimpan!','ok');
+  }).catch(function(e){ showNotif('Gagal simpan: '+e.message,'err'); });
+}
+
+function ghShowTab(tab){
+  var isList=tab==='list',isForm=tab==='form',isToken=tab==='token',isBrowse=tab==='browse';
+  document.getElementById('gh-list-view').style.display=isList?'block':'none';
+  document.getElementById('gh-form-view').style.display=isForm?'block':'none';
+  document.getElementById('gh-token-view').style.display=isToken?'block':'none';
+  document.getElementById('gh-browse-view').style.display=isBrowse?'block':'none';
+  document.getElementById('gh-footer-list').style.display=isList?'flex':'none';
+  document.getElementById('gh-footer-form').style.display=isForm?'flex':'none';
+  document.getElementById('gh-footer-token').style.display=isToken?'flex':'none';
+  document.getElementById('gh-footer-browse').style.display=isBrowse?'flex':'none';
+  document.getElementById('gh-tab-list').classList.toggle('active',isList);
+  document.getElementById('gh-tab-token').classList.toggle('active',isToken);
+  document.getElementById('gh-status').textContent='';
+  if(isList) ghRenderList();
+  if(isToken){
+    var t=ghGetToken();
+    document.getElementById('gh-token').value=t;
+    document.getElementById('gh-token-status').textContent=t?'✓ Token tersimpan':'Belum ada token';
+    document.getElementById('gh-token-status').style.color=t?'var(--green)':'var(--text2)';
+  }
+}
+
+var _ghBrowseIdx=-1,_ghBrowsePath='',_ghBrowseHistory=[];
+
+function ghBrowse(idx){
+  _ghBrowseIdx=idx; _ghBrowsePath=''; _ghBrowseHistory=[];
+  ghShowTab('browse'); ghFetchBrowse('');
+}
+
+function ghBrowseBack(){
+  if(!_ghBrowseHistory.length) return;
+  _ghBrowsePath=_ghBrowseHistory.pop();
+  ghFetchBrowse(_ghBrowsePath);
+}
+
+// ═══════════════════════════════════
+// FILE TREE (inline atas editor)
+// ═══════════════════════════════════
+var _ftIdx=-1, _ftPath='', _ftHistory=[];
+
+function toggleFileTree(){
+  var wrap=document.getElementById('filetree-wrap');
+  var isShow=wrap.classList.contains('show');
+  if(isShow){
+    wrap.classList.remove('show');
+  } else {
+    // guna config pertama atau _ghBrowseIdx
+    var configs=ghGetConfigs();
+    if(!configs.length){ showNotif('Tambah app dalam Deploy dahulu','err'); return; }
+    // kalau ada fail dibuka dari browse, guna repo tu
+    if(S.fileRepo){
+      _ftIdx=_ghBrowseIdx>=0?_ghBrowseIdx:0;
+    } else {
+      _ftIdx=0;
+    }
+    _ftPath=''; _ftHistory=[];
+    wrap.classList.add('show');
+    ftFetch('');
+  }
+}
+
+function ftFetch(path){
+  var configs=ghGetConfigs();
+  var c=configs[_ftIdx]; if(!c) return;
+  var token=ghGetToken();
+  var list=document.getElementById('filetree-list');
+  var pathEl=document.getElementById('filetree-path');
+  list.innerHTML='<span style="color:var(--text2);font-size:12px">⏳ Memuatkan...</span>';
+  pathEl.textContent=c.repo+(path?'/'+path:'');
+  var apiUrl='https://api.github.com/repos/'+c.repo+'/contents/'+(path||'')+'?ref='+c.branch;
+  var headers={'Accept':'application/vnd.github.v3+json'};
+  if(token) headers['Authorization']='token '+token;
+  fetch(apiUrl,{headers:headers})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!Array.isArray(data)){
+        list.innerHTML='<span style="color:var(--red);font-size:12px">✕ '+(data.message||'Gagal')+'</span>';
+        return;
+      }
+      data.sort(function(a,b){
+        if(a.type===b.type) return a.name.localeCompare(b.name);
+        return a.type==='dir'?-1:1;
+      });
+      var html='';
+      if(_ftHistory.length){
+        html+='<div class="ft-item ft-back" onclick="ftBack()">← Balik</div>';
+      }
+      data.forEach(function(item){
+        var icon=item.type==='dir'?'📁':'📄';
+        var isActive=item.path===S.filePath;
+        var cls='ft-item'+(item.type==='dir'?' ft-dir':'')+(isActive?' ft-active':'');
+        html+='<div class="'+cls+'" onclick="ftTap(\''+item.path.replace(/'/g,"\\'")+'\',\''+item.type+'\',\''+item.name.replace(/'/g,"\\'")+'\')">'+icon+' '+item.name+'</div>';
+      });
+      list.innerHTML=html||'<span style="color:var(--text2);font-size:12px">Kosong</span>';
+    })
+    .catch(function(e){ list.innerHTML='<span style="color:var(--red);font-size:12px">✕ '+e.message+'</span>'; });
+}
+
+function ftBack(){
+  if(!_ftHistory.length) return;
+  _ftPath=_ftHistory.pop();
+  ftFetch(_ftPath);
+}
+
+function ftTap(path,type,name){
+  if(type==='dir'){
+    _ftHistory.push(_ftPath);
+    _ftPath=path;
+    ftFetch(path);
+  } else {
+    // buka fail terus ke editor
+    var configs=ghGetConfigs();
+    var c=configs[_ftIdx]; if(!c) return;
+    var token=ghGetToken();
+    showNotif('Memuatkan '+name+'...','info');
+    var apiUrl='https://api.github.com/repos/'+c.repo+'/contents/'+path+'?ref='+c.branch;
+    var headers={'Accept':'application/vnd.github.v3+json'};
+    if(token) headers['Authorization']='token '+token;
+    fetch(apiUrl,{headers:headers})
+      .then(function(r){return r.json();})
+      .then(function(data){
+        function setFile(content){
+          pushUndo();
+          S.fileName=name;
+          S.filePath=path;
+          S.fileRepo=c.repo;
+          S.fileBranch=c.branch;
+          _ghBrowseIdx=_ftIdx;
+          inp().value=content;
+          updateAll(); saveToStorage();
+          // refresh tree untuk highlight fail aktif
+          ftFetch(_ftPath);
+          showNotif('Dibuka: '+name,'ok');
+        }
+        if(data.content){
+          try{
+            var content=decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+            setFile(content);
+          }catch(e){
+            if(data.download_url) fetch(data.download_url).then(function(r){return r.text();}).then(setFile);
+            else showNotif('Gagal decode','err');
+          }
+        } else if(data.download_url){
+          showNotif('Fail besar — memuat...','info');
+          fetch(data.download_url).then(function(r){return r.text();}).then(setFile);
+        } else {
+          showNotif('Fail tidak boleh dibaca','err');
+        }
+      })
+      .catch(function(e){ showNotif('Gagal: '+e.message,'err'); });
+  }
+}
+
+function ghFetchBrowse(path){
+  var list=ghGetConfigs(); var c=list[_ghBrowseIdx]; if(!c) return;
+  var token=ghGetToken();
+  var browseList=document.getElementById('gh-browse-list');
+  var browsePath=document.getElementById('gh-browse-path');
+  var browseBack=document.getElementById('gh-browse-back');
+  browseList.innerHTML='<div style="color:var(--text2);font-size:13px;padding:10px">⏳ Memuatkan...</div>';
+  browsePath.textContent=c.repo+(path?'/'+path:'');
+  browseBack.style.display=path?'block':'none';
+  var apiUrl='https://api.github.com/repos/'+c.repo+'/contents/'+(path||'')+'?ref='+c.branch;
+  var headers={'Accept':'application/vnd.github.v3+json'};
+  if(token) headers['Authorization']='token '+token;
+  fetch(apiUrl,{headers:headers})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!Array.isArray(data)){
+        browseList.innerHTML='<div style="color:var(--red);font-size:13px;padding:10px">✕ '+(data.message||'Gagal')+'</div>';
+        return;
+      }
+      data.sort(function(a,b){
+        if(a.type===b.type) return a.name.localeCompare(b.name);
+        return a.type==='dir'?-1:1;
+      });
+      var html='';
+      data.forEach(function(item){
+        var icon=item.type==='dir'?'📁':'📄';
+        var isCode=item.name.match(/\.(html|htm|js|css|txt|json|md|xml|php|py)$/i);
+        html+='<div class="file-item" onclick="ghBrowseItem(\''+item.path.replace(/'/g,"\\'") +'\',\''+item.type+'\')">'+
+          '<span class="file-icon">'+icon+'</span>'+
+          '<div class="file-info">'+
+            '<div class="file-name">'+item.name+'</div>'+
+            '<div class="file-meta">'+(item.type==='dir'?'Folder':(item.size>1024?Math.round(item.size/1024)+' KB':item.size+' B'))+'</div>'+
+          '</div>'+
+          (item.type==='file'&&isCode?'<button class="file-act" onclick="event.stopPropagation();ghBrowseOpen(\''+item.path.replace(/'/g,"\\'")+'\')">Buka</button>':'')+
+        '</div>';
+      });
+      browseList.innerHTML=html||'<div style="color:var(--text2);font-size:13px;padding:10px">Folder kosong</div>';
+    })
+    .catch(function(e){ browseList.innerHTML='<div style="color:var(--red);font-size:13px;padding:10px">✕ '+e.message+'</div>'; });
+}
+
+function ghBrowseItem(path,type){
+  if(type==='dir'){
+    _ghBrowseHistory.push(_ghBrowsePath);
+    _ghBrowsePath=path;
+    ghFetchBrowse(path);
+  }
+}
+
+function ghBrowseOpen(path){
+  var list=ghGetConfigs(); var c=list[_ghBrowseIdx]; if(!c) return;
+  var token=ghGetToken();
+  showNotif('Memuatkan '+path+'...','info');
+  var apiUrl='https://api.github.com/repos/'+c.repo+'/contents/'+path+'?ref='+c.branch;
+  var headers={'Accept':'application/vnd.github.v3+json'};
+  if(token) headers['Authorization']='token '+token;
+
+  function setFile(content){
+    pushUndo();
+    S.fileName=path.split('/').pop();
+    S.filePath=path;
+    S.fileRepo=c.repo;
+    S.fileBranch=c.branch;
+    inp().value=content;
+    updateAll(); saveToStorage();
+    closeAllPanels();
+    showNotif('Dibuka dari GitHub: '+path,'ok');
+  }
+
+  fetch(apiUrl,{headers:headers})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      // fail kecil — ada content base64
+      if(data.content){
+        try{
+          var content=decodeURIComponent(escape(atob(data.content.replace(/\n/g,''))));
+          setFile(content);
+        }catch(e){
+          // atob gagal — cuba download_url
+          if(data.download_url){
+            return fetch(data.download_url).then(function(r){return r.text();}).then(setFile);
+          }
+          showNotif('Gagal decode fail','err');
+        }
+        return;
+      }
+      // fail besar — tiada content, guna download_url
+      if(data.download_url){
+        showNotif('Fail besar — memuat dari download_url...','info');
+        return fetch(data.download_url).then(function(r){
+          if(!r.ok) throw new Error('HTTP '+r.status);
+          return r.text();
+        }).then(setFile);
+      }
+      showNotif('Fail tidak dapat dibaca (terlalu besar atau tiada akses)','err');
+    })
+    .catch(function(e){ showNotif('Gagal: '+e.message,'err'); });
+}
+
+function ghSetOrigBlock(blocked){
+  if(!currentUser) return;
+  S.origDeployBlocked=blocked;
+  if(blocked) S.origDeployTime=Date.now();
+  var btn=document.getElementById('btn-deploy-orig');
+  var ds=document.getElementById('gh-orig-status');
+  if(btn){
+    btn.disabled=blocked;
+    btn.style.opacity=blocked?'0.5':'1';
+    btn.style.cursor=blocked?'not-allowed':'pointer';
+  }
+  if(ds){
+    ds.style.color=blocked?'var(--amber)':'var(--green)';
+    ds.textContent=blocked?'⏳ Menunggu Pages build... tekan 🔍 untuk check':'';
+  }
+  if(!blocked) ghSetGlobalLock(false);
+  // simpan state dalam Firebase
+  if(currentUser){
+    db.collection('users').doc(currentUser.uid).collection('settings').doc('deployState').set({
+      origBlocked: blocked,
+      origPath: S.filePath,
+      origRepo: S.fileRepo,
+      origBranch: S.fileBranch
+    }).catch(function(){});
+  }
+}
+
+function ghCheckOrigStatus(){
+  var repo=S.fileRepo;
+  var branch=S.fileBranch||'main';
+  var ds=document.getElementById('gh-orig-status');
+  if(!repo){
+    if(!currentUser) return;
+    db.collection('users').doc(currentUser.uid).collection('settings').doc('deployState').get()
+      .then(function(doc){
+        if(doc.exists&&doc.data().origRepo){
+          S.fileRepo=doc.data().origRepo;
+          S.fileBranch=doc.data().origBranch||'main';
+          ghCheckOrigStatus();
+        } else {
+          if(ds){ ds.style.color='var(--red)'; ds.textContent='✕ Tiada repo — buka fail dari Browse dahulu'; }
+        }
+      });
+    return;
+  }
+  var token=ghGetToken();
+  if(!token){showNotif('Simpan API Key dahulu','err');return;}
+  if(ds){ ds.style.color='var(--accent)'; ds.textContent='⏳ Checking...'; }
+  var headers={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json'};
+  fetch('https://api.github.com/repos/'+repo+'/pages/builds',{headers:headers})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!ds) return;
+      if(Array.isArray(data)&&data.length){
+        var latest=data[0];
+        var st=latest.status;
+        var updatedAt=latest.updated_at?new Date(latest.updated_at):null;
+        var deployTime=S.origDeployTime||0;
+if(st==='built'){
+          if(!S.origDeployBlocked){
+            ds.style.color='var(--green)'; ds.textContent='✓ Pages dah live';
+          } else {
+            var now=Date.now();
+            var elapsed=now-(S.origDeployTime||0);
+            // minimum 15 saat selepas deploy baru boleh unlock
+            if(elapsed>15000&&updatedAt&&updatedAt.getTime()>(S.origDeployTime||0)){
+              ds.style.color='var(--green)'; ds.textContent='✓ Pages dah live';
+              ghSetOrigBlock(false);
+            } else {
+              ds.style.color='var(--amber)'; ds.textContent='⏳ Menunggu build baru... tekan 🔍 semula';
+            }
+          }
+        } else if(st==='building'){
+          ds.style.color='var(--amber)'; ds.textContent='⏳ Sedang build... tekan 🔍 semula';
+        } else if(st==='errored'){
+          ds.style.color='var(--red)'; ds.textContent='✕ Build error';
+          if(S.origDeployBlocked) ghSetOrigBlock(false);
+        } else {
+          ds.style.color='var(--text2)'; ds.textContent='Status: '+st;
+        }
+      } else if(data.message){
+        ds.style.color='var(--red)'; ds.textContent='✕ '+data.message;
+      }
+    }).catch(function(e){
+      if(ds){ ds.style.color='var(--red)'; ds.textContent='✕ '+e.message; }
+    });
+}
+
+function ghDeployOriginal(){
+  if(!S.filePath||!S.fileRepo){showNotif('Tiada fail GitHub dibuka','err');return;}
+  if(_ghGlobalLock||S.origDeployBlocked){showNotif('Deploy sedang diproses — tekan 🔍 untuk check status','err');return;}
+  var token=ghGetToken();
+  if(!token){showNotif('Simpan API Key dahulu','err');return;}
+  var content=inp().value;
+  if(!content){showNotif('Tiada kandungan','err');return;}
+  var status=document.getElementById('gh-status');
+  var ds=document.getElementById('gh-orig-status');
+  status.style.color='var(--accent)';
+  status.textContent='⏳ Deploy ke '+S.filePath+'...';
+S.origDeployTime=Date.now();
+  if(ds){ ds.style.color='var(--accent)'; ds.textContent='⏳ Deploying...'; }
+  var apiUrl='https://api.github.com/repos/'+S.fileRepo+'/contents/'+S.filePath;
+  var headers={'Authorization':'token '+token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'};
+  fetch(apiUrl+'?ref='+S.fileBranch,{headers:headers})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var body={message:'Update '+S.filePath+' via KodEdit',content:btoa(unescape(encodeURIComponent(content))),branch:S.fileBranch};
+      if(data.sha) body.sha=data.sha;
+      return fetch(apiUrl,{method:'PUT',headers:headers,body:JSON.stringify(body)});
+    })
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.content){
+        status.style.color='var(--green)';
+        status.textContent='✓ Deploy berjaya: '+S.filePath;
+        showNotif('🚀 Deploy berjaya!','ok');
+        ghSetGlobalLock(true);
+        ghSetOrigBlock(true);
+        setTimeout(function(){ ghCheckOrigStatus(); }, 30000);
+      } else {
+        status.style.color='var(--red)';
+        status.textContent='✕ '+(data.message||'Gagal');
+        showNotif('Deploy gagal','err');
+        ghSetGlobalLock(false);
+        ghSetOrigBlock(false);
+      }
+    })
+    .catch(function(e){
+      status.style.color='var(--red)'; status.textContent='✕ '+e.message;
+      showNotif('Deploy gagal','err');
+      ghSetGlobalLock(false);
+      ghSetOrigBlock(false);
+    });
+}
+
+function ghRenderList(){
+  var list = ghGetConfigs();
+  var el = document.getElementById('gh-apps-list');
+  var deployOrig=document.getElementById('gh-deploy-original');
+  var origInfo=document.getElementById('gh-original-info');
+  if(S.filePath&&S.fileRepo){
+    deployOrig.style.display='block';
+    origInfo.textContent='📄 '+S.fileRepo+'/'+S.filePath+' ('+S.fileBranch+')';
+  } else {
+    deployOrig.style.display='none';
+  }
+  if(!list.length){
+    el.innerHTML='<div style="text-align:center;color:var(--text2);font-size:13px;padding:16px">Tiada app lagi. Tambah app baru.</div>';
+    return;
+  }
+  var html='';
+  list.forEach(function(c,i){
+    var blocked=_ghGlobalLock||c.deployBlocked||false;
+    html+='<div class="file-item" style="flex-wrap:wrap;gap:6px" id="gh-item-'+i+'">'+
+      '<div class="file-info" style="width:100%">'+
+        '<div class="file-name">'+c.name+'</div>'+
+        '<div class="file-meta">'+c.repo+' → '+c.path+' ('+c.branch+')</div>'+
+        '<div class="gh-deploy-status" id="gh-ds-'+i+'" style="font-size:11px;margin-top:4px;min-height:14px">'+(blocked?'⏳ Menunggu Pages build...':'')+'</div>'+
+        (blocked?'<div style="font-size:10px;color:var(--amber);font-style:italic;margin-top:2px">⚠ Deployment in progress — locked to prevent SHA conflicts. Press 🔍 to check.</div>':'')+
+      '</div>'+
+      '<button class="btn success" style="flex:1;padding:6px;opacity:'+(blocked?'0.5':'1')+';cursor:'+(blocked?'not-allowed':'pointer')+'" onclick="ghDeploy('+i+')" '+(blocked?'disabled':'')+'>🚀 Deploy</button>'+
+      '<button class="btn" style="flex:none;padding:6px 10px;border-color:var(--green);color:var(--green)" onclick="ghBrowse('+i+')">📂</button>'+
+      '<button class="btn" style="flex:none;padding:6px 10px;border-color:var(--accent);color:var(--accent)" onclick="ghCheckStatus('+i+')">🔍</button>'+
+      '<button class="btn amber" style="flex:none;padding:6px 10px" onclick="ghEditConfig('+i+')">✏</button>'+
+      '<button class="btn danger" style="flex:none;padding:6px 10px" onclick="ghDeleteConfig('+i+')">🗑</button>'+
+    '</div>';
+  });
+  el.innerHTML=html;
+}
+
+function ghNewConfig(){
+  document.getElementById('gh-edit-idx').value='-1';
+  document.getElementById('gh-name').value='';
+  document.getElementById('gh-repo').value='';
+  document.getElementById('gh-path').value='';
+  document.getElementById('gh-branch').value='main';
+}
+
+function ghEditConfig(idx){
+  var list=ghGetConfigs(); var c=list[idx]; if(!c) return;
+  document.getElementById('gh-edit-idx').value=idx;
+  document.getElementById('gh-name').value=c.name||'';
+  document.getElementById('gh-repo').value=c.repo||'';
+  document.getElementById('gh-path').value=c.path||'';
+  document.getElementById('gh-branch').value=c.branch||'main';
+  ghShowTab('form');
+}
+
+function ghDeleteConfig(idx){
+  var list=ghGetConfigs();
+  if(!confirm('Padam config "'+list[idx].name+'"?')) return;
+  list.splice(idx,1);
+  _ghConfigs=list;
+  ghSaveToFirebase().then(function(){
+    ghRenderList(); showNotif('Config dipadam','ok');
+  });
+}
+
+function ghSaveConfig(){
+  var name=document.getElementById('gh-name').value.trim();
+  var repo=document.getElementById('gh-repo').value.trim();
+  var path=document.getElementById('gh-path').value.trim();
+  var branch=document.getElementById('gh-branch').value.trim()||'main';
+  if(!name||!repo||!path){showNotif('Isi semua field','err');return;}
+  if(!ghGetToken()){showNotif('Simpan API Key dahulu dalam tab 🔑','err');return;}
+  var list=ghGetConfigs();
+  var idx=parseInt(document.getElementById('gh-edit-idx').value);
+  var config={name:name,repo:repo,path:path,branch:branch};
+  if(idx>=0) list[idx]=config; else list.push(config);
+  _ghConfigs=list;
+  ghSaveToFirebase().then(function(){
+    showNotif('Config disimpan!','ok');
+    ghShowTab('list');
+  }).catch(function(e){ showNotif('Gagal simpan: '+e.message,'err'); });
+}
+
+function ghCheckStatus(idx){
+  var list=ghGetConfigs(); var c=list[idx]; if(!c) return;
+  var token=ghGetToken();
+  if(!token){showNotif('Simpan API Key dahulu','err');return;}
+  var ds=document.getElementById('gh-ds-'+idx);
+  if(ds){ ds.style.color='var(--accent)'; ds.textContent='⏳ Checking...'; }
+  var headers={
+    'Authorization':'token '+token,
+    'Accept':'application/vnd.github.v3+json'
+  };
+  fetch('https://api.github.com/repos/'+c.repo+'/pages/builds',{headers:headers})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(!ds) return;
+      if(Array.isArray(data)&&data.length){
+        var latest=data[0];
+        var st=latest.status;
+        var updatedAt=latest.updated_at?new Date(latest.updated_at):null;
+        var deployTime=c.deployTime||0;
+        if(st==='built'){
+          if(!c.deployBlocked){
+            // tak deploy baru-baru ni, tunjuk status sahaja
+            ds.style.color='var(--green)';
+            ds.textContent='✓ Pages dah live';
+          } else {
+            var elapsed=Date.now()-deployTime;
+            if(elapsed>15000&&updatedAt&&updatedAt.getTime()>deployTime){
+              ds.style.color='var(--green)';
+              ds.textContent='✓ Pages dah live';
+              ghSetDeployBlock(idx, false);
+            } else {
+              ds.style.color='var(--amber)';
+              ds.textContent='⏳ Menunggu build baru... tekan 🔍 semula';
+            }
+          }
+        } else if(st==='building'){
+          ds.style.color='var(--amber)';
+          ds.textContent='⏳ Sedang build... tekan 🔍 semula';
+        } else if(st==='errored'){
+          ds.style.color='var(--red)';
+          ds.textContent='✕ Build error: '+(latest.error&&latest.error.message||'unknown');
+          if(c.deployBlocked) ghSetDeployBlock(idx, false);
+        } else {
+          ds.style.color='var(--text2)';
+          ds.textContent='Status: '+st;
+        }
+      } else if(data.message){
+        ds.style.color='var(--red)';
+        ds.textContent='✕ '+data.message;
+      } else {
+        ds.style.color='var(--text2)';
+        ds.textContent='Tiada data build';
+      }
+    })
+    .catch(function(e){
+      if(ds){ ds.style.color='var(--red)'; ds.textContent='✕ '+e.message; }
+    });
+}
+
+var _ghGlobalLock=false;
+
+function ghSetGlobalLock(locked){
+  _ghGlobalLock=locked;
+  document.querySelectorAll('#gh-apps-list .btn.success').forEach(function(btn){
+    btn.disabled=locked;
+    btn.style.opacity=locked?'0.5':'1';
+    btn.style.cursor=locked?'not-allowed':'pointer';
+  });
+  var origBtn=document.getElementById('btn-deploy-orig');
+  if(origBtn){
+    origBtn.disabled=locked;
+    origBtn.style.opacity=locked?'0.5':'1';
+    origBtn.style.cursor=locked?'not-allowed':'pointer';
+  }
+  var lockNote=document.getElementById('gh-orig-lock-note');
+  if(lockNote) lockNote.style.display=locked?'block':'none';
+  // simpan ke Firestore
+  if(currentUser){
+    ghFbDoc().update({globalLock: locked}).catch(function(){
+      ghSaveToFirebase();
+    });
+  }
+}
+
+function ghSetDeployBlock(idx, blocked){
+  if(!currentUser) return;
+  var configs=ghGetConfigs();
+  if(!configs[idx]) return;
+  configs[idx].deployBlocked=blocked;
+  _ghConfigs=configs;
+  ghSaveToFirebase();
+  var btn=document.querySelector('#gh-item-'+idx+' .btn.success');
+  if(btn){
+    btn.disabled=blocked;
+    btn.style.opacity=blocked?'0.5':'1';
+    btn.style.cursor=blocked?'not-allowed':'pointer';
+  }
+  // release global lock hanya kalau tiada app lain yang masih blocked
+  if(!blocked){
+    var stillBlocked=configs.some(function(c){ return c.deployBlocked; });
+    var origStillBlocked=S.origDeployBlocked||false;
+    if(!stillBlocked&&!origStillBlocked) ghSetGlobalLock(false);
+  }
+}
+
+function ghDoActualDeploy(apiUrl, headers, content, sha, c, status, ds, idx){
+  var body={
+    message:'Update '+c.path+' via KodEdit',
+    content:btoa(unescape(encodeURIComponent(content))),
+    branch:c.branch
+  };
+  if(sha) body.sha=sha;
+  var deployTime=Date.now();
+  fetch(apiUrl,{method:'PUT',headers:headers,body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.content){
+        status.style.color='var(--green)';
+        status.textContent='✓ Deploy berjaya: '+c.name+' → '+c.branch;
+        showNotif('🚀 '+c.name+' berjaya deploy!','ok');
+        if(ds){ ds.style.color='var(--amber)'; ds.textContent='⏳ GitHub Pages sedang build... tekan 🔍 untuk check'; }
+        // simpan deployTime dalam config
+        var configs=ghGetConfigs();
+        if(configs[idx]){ configs[idx].deployTime=deployTime; _ghConfigs=configs; ghSaveToFirebase(); }
+        ghSetGlobalLock(true);
+        ghSetDeployBlock(idx, true);
+        setTimeout(function(){ ghCheckStatus(idx); }, 30000);
+      } else {
+        status.style.color='var(--red)';
+        status.textContent='✕ '+(data.message||'Gagal');
+        showNotif('Deploy gagal: '+(data.message||''),'err');
+        if(ds){ ds.style.color='var(--red)'; ds.textContent='✕ Deploy gagal'; }
+        ghSetGlobalLock(false);
+        ghSetDeployBlock(idx, false);
+      }
+    })
+    .catch(function(e){
+      status.style.color='var(--red)';
+      status.textContent='✕ Error: '+e.message;
+      showNotif('Deploy gagal','err');
+      if(ds){ ds.style.color='var(--red)'; ds.textContent='✕ '+e.message; }
+      ghSetGlobalLock(false);
+      ghSetDeployBlock(idx, false);
+    });
+}
+
+function ghDeploy(idx){
+  var list=ghGetConfigs(); var c=list[idx]; if(!c) return;
+  if(_ghGlobalLock||c.deployBlocked){showNotif('Deploy sedang diproses — tekan 🔍 untuk check status','err');return;}
+  var token=ghGetToken();
+  if(!token){showNotif('Simpan API Key dahulu dalam tab 🔑','err');return;}
+  var content=inp().value;
+  if(!content){showNotif('Tiada kandungan untuk deploy','err');return;}
+  var status=document.getElementById('gh-status');
+  var ds=document.getElementById('gh-ds-'+idx);
+  status.style.color='var(--accent)';
+  status.textContent='⏳ Deploy "'+c.name+'" — mendapat SHA terkini...';
+  if(ds){ ds.style.color='var(--accent)'; ds.textContent='⏳ Deploying...'; }
+
+  var apiUrl='https://api.github.com/repos/'+c.repo+'/contents/'+c.path;
+  var headers={
+    'Authorization':'token '+token,
+    'Accept':'application/vnd.github.v3+json',
+    'Content-Type':'application/json'
+  };
+
+  fetch(apiUrl+'?ref='+c.branch,{headers:headers})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var sha=data.sha||null;
+      status.textContent='⏳ Menghantar fail...';
+      ghDoActualDeploy(apiUrl,headers,content,sha,c,status,ds,idx);
+    })
+    .catch(function(e){
+      status.style.color='var(--red)';
+      status.textContent='✕ Error: '+e.message;
+      showNotif('Deploy gagal','err');
+    });
+}
+
+function setAdminPin(){
+  if(!currentUser||currentUser.email!==ADMIN_EMAIL){showNotif('Hanya admin boleh set PIN','err');return;}
+  var pin = prompt('PIN baru (4-6 digit):');
+  if(!pin||!/^\d{4,6}$/.test(pin)){showNotif('PIN mesti 4-6 digit nombor','err');return;}
+  var pass = prompt('Masukkan password admin untuk sahkan:');
+  if(!pass){return;}
+  db.collection('admin').doc('pin').set({
+    pin: pin,
+    pass: pass
+  }).then(function(){
+    showNotif('✓ PIN berjaya ditetapkan','ok');
+  }).catch(function(e){ showNotif('Gagal: '+e.message,'err'); });
+}
+
+// ═══════════════════════════════════
+// FIRESTORE — FILES
+// ═══════════════════════════════════
+function fbCollection(){
+  return db.collection('users').doc(currentUser.uid).collection('files');
+}
+
+function backupToFirebase(){
+  if(!currentUser){showNotif('Log masuk dahulu','err');return;}
+  var content = inp().value;
+  var name = S.fileName;
+  if(!content){showNotif('Tiada kandungan untuk disimpan','err');return;}
+  if(!name){
+    name = prompt('Nama fail:','index.html');
+    if(!name) return;
+    S.fileName = name;
+  }
+  showNotif('Menyimpan ke Firebase...','info');
+  saveFileToFirebase(name, content).then(function(){
+    var loc = content.length > FIRESTORE_MAX ? 'Storage' : 'Firestore';
+    showNotif('✓ Disimpan ke Firebase '+loc+': '+name,'ok');
+    saveRecent(name, content);
+    updateStatusBar();
+  }).catch(function(e){
+    showNotif('Gagal simpan: '+e.message,'err');
+  });
+}
+
+function loadCloudFiles(callback){
+  if(!currentUser){callback([]);return;}
+  fbCollection().get()
+    .then(function(snap){
+      var files=[];
+      snap.forEach(function(doc){
+        var d=doc.data();
+        if(d&&d.name) files.push(d);
+      });
+      files.sort(function(a,b){
+        var ta=a.updatedAt&&a.updatedAt.toMillis?a.updatedAt.toMillis():0;
+        var tb=b.updatedAt&&b.updatedAt.toMillis?b.updatedAt.toMillis():0;
+        return tb-ta;
+      });
+      callback(files);
+    }).catch(function(e){ console.log('loadCloudFiles err:',e); callback([]); });
+}
+
+function loadCloudFile(name){
+  if(!currentUser){showNotif('Log masuk dahulu','err');return;}
+  showNotif('Memuatkan '+name+'...','info');
+  fbCollection().doc(name).get().then(function(doc){
+    if(!doc.exists){showNotif('Fail tidak dijumpai','err');return;}
+    var d = doc.data();
+    return loadFileFromFirebase(d).then(function(content){
+      pushUndo();
+      S.fileName = d.name;
+      inp().value = content;
+      updateAll(); saveToStorage();
+      closeAllPanels();
+      showNotif('Dibuka: '+d.name+(d.inStorage?' (Storage)':''),'ok');
+    });
+  }).catch(function(e){ showNotif('Gagal muat: '+e.message,'err'); });
+}
+
+function deleteCloudFile(name){
+  if(!confirm('Padam fail '+name+' dari Firebase?')) return;
+  fbCollection().doc(name).delete().then(function(){
+    showNotif('Dipadam: '+name,'ok');
+    renderFilesBody();
+  }).catch(function(e){ showNotif('Gagal padam: '+e.message,'err'); });
+}
+
+function renameCloudFile(oldName){
+  var newName = prompt('Nama baru untuk '+oldName+':',oldName);
+  if(!newName||newName===oldName) return;
+  showNotif('Menamakan semula...','info');
+  fbCollection().doc(oldName).get().then(function(doc){
+    if(!doc.exists){showNotif('Fail tidak dijumpai','err');return;}
+    var data = doc.data();
+    data.name = newName;
+    return fbCollection().doc(newName).set(data).then(function(){
+      return fbCollection().doc(oldName).delete();
+    });
+  }).then(function(){
+    if(S.fileName===oldName){ S.fileName=newName; updateStatusBar(); }
+    showNotif('Dinamakan semula: '+newName,'ok');
+    renderFilesBody();
+  }).catch(function(e){ showNotif('Gagal rename: '+e.message,'err'); });
+}
+
+function newCloudFile(){
+  var name = prompt('Nama fail baru:','index.html');
+  if(!name) return;
+  pushUndo();
+  S.fileName = name;
+  inp().value = '';
+  updateAll(); saveToStorage();
+  closeAllPanels();
+  showNotif('Fail baru: '+name,'ok');
+}
+
+function closeFile(){
+  if(!confirm('Tutup fail dan kembali ke editor kosong?')) return;
+  pushUndo();
+  S.fileName = '';
+  inp().value = '';
+  localStorage.removeItem(KEY_FILE);
+  updateAll();
+  showNotif('Fail ditutup','info');
+}
+
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+var S = {
+  fileName:'',filePath:'',fileRepo:'',fileBranch:'',
+  origDeployBlocked:false,origDeployTime:0,
+  undoStack:[],redoStack:[],
+  selStart:-1,selEnd:-1,selMode:false,
+  searchResults:[],searchIdx:0,currentTab:'cloud',
+  undoStacks:{},redoStacks:{}
+};
+var KEY_FILE='kodedit_v2_file';
+var KEY_RECENT='kodedit_v2_recent';
+var KEY_BACKUP='kodedit_v2_backup';
+
+function inp(){ return document.getElementById('code-input'); }
+
+// ═══════════════════════════════════
+// LOCAL STORAGE
+// ═══════════════════════════════════
+function saveToStorage(){
+  try{ localStorage.setItem(KEY_FILE,JSON.stringify({name:S.fileName,content:inp().value,ts:Date.now()})); }
+  catch(e){ showNotif('Storan penuh!','err'); }
+}
+function loadFromStorage(){
+  try{
+    var raw=localStorage.getItem(KEY_FILE); if(!raw) return;
+    var d=JSON.parse(raw); S.fileName=d.name||'';
+    inp().value=d.content||''; updateAll();
+    document.getElementById('status-file').textContent=S.fileName||'Tiada fail';
+  }catch(e){}
+}
+function saveRecent(name,content){
+  try{
+    var list=JSON.parse(localStorage.getItem(KEY_RECENT)||'[]');
+    list=list.filter(function(f){return f.name!==name;});
+    list.unshift({name:name,size:content.length,ts:Date.now(),content:content});
+    if(list.length>10) list=list.slice(0,10);
+    localStorage.setItem(KEY_RECENT,JSON.stringify(list));
+  }catch(e){}
+}
+function getRecent(){ try{return JSON.parse(localStorage.getItem(KEY_RECENT)||'[]');}catch(e){return[];} }
+function saveBackup(){
+  try{
+    var list=JSON.parse(localStorage.getItem(KEY_BACKUP)||'[]');
+    list.unshift({name:S.fileName,content:inp().value,ts:Date.now()});
+    if(list.length>5) list=list.slice(0,5);
+    localStorage.setItem(KEY_BACKUP,JSON.stringify(list));
+  }catch(e){}
+}
+function getBackups(){ try{return JSON.parse(localStorage.getItem(KEY_BACKUP)||'[]');}catch(e){return[];} }
+
+// ═══════════════════════════════════
+// EDITOR
+// ═══════════════════════════════════
+function setupEditor(){
+  var el=inp();
+  el.addEventListener('input',function(){ pushUndo(); updateAll(); saveToStorage(); });
+  el.addEventListener('scroll',syncScroll);
+  document.getElementById('code-wrap').addEventListener('scroll',syncScroll);
+  el.addEventListener('keyup',updateCursor);
+  el.addEventListener('click',updateCursor);
+  el.addEventListener('mouseup',updateCursor);
+  el.addEventListener('blur',function(){
+    if(!currentUser) return;
+    var content=el.value; if(!content) return;
+    if(!S.fileName){
+      var name=prompt('Nama fail untuk disimpan ke Firebase:','index.html');
+      if(!name) return;
+      S.fileName=name; updateStatusBar();
+    }
+    saveFileToFirebase(S.fileName, content).then(function(){
+      showNotif('✓ Autosave: '+S.fileName,'ok');
+      saveRecent(S.fileName,content);
+    }).catch(function(e){
+      showNotif('Autosave gagal: '+e.message,'err');
+    });
+  });
+}
+
+function syncScroll(){
+  var el=inp();
+  document.getElementById('line-nums-inner').style.top=(-el.scrollTop)+'px';
+}
+function afterScroll(){
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ syncScroll(); }); });
+}
+
+function updateAll(){ updateLineNums(); updateCursor(); updateStatusBar(); checkEmpty(); }
+
+function updateLineNums(){
+  var lines=(inp().value||'').split('\n');
+  var lnInner=document.getElementById('line-nums-inner');
+  var html='';
+  for(var i=1;i<=Math.max(lines.length,1);i++) html+='<div>'+i+'</div>';
+  lnInner.innerHTML=html;
+}
+function updateCursor(){
+  var el=inp(),pos=el.selectionStart;
+  var before=el.value.substring(0,pos),lines=before.split('\n');
+  document.getElementById('status-pos').textContent='B:'+lines.length+' L:'+(lines[lines.length-1].length+1);
+  var selLen=Math.abs(el.selectionEnd-el.selectionStart);
+  document.getElementById('status-sel').textContent=selLen>0?selLen+' dipilih':'';
+}
+function updateStatusBar(){
+  document.getElementById('status-file').textContent=S.fileName||'Tiada fail';
+}
+function checkEmpty(){
+  document.getElementById('empty-state').classList.toggle('show', false);
+}
+
+// ═══════════════════════════════════
+// LONG PRESS / SELECT
+// ═══════════════════════════════════
+function lineAt(cy){
+  var el=inp(),rect=el.getBoundingClientRect();
+  var relY=cy-rect.top+el.scrollTop;
+  var n=Math.floor(relY/22),total=el.value.split('\n').length;
+  return Math.max(0,Math.min(n,total-1));
+}
+function toggleSelMode(){
+  S.selMode=!S.selMode; S.selStart=-1; S.selEnd=-1;
+  var btn=document.getElementById('btn-pilih');
+  if(S.selMode){
+    btn.style.background='var(--accent)';btn.style.color='#0f0f1a';btn.style.borderColor='var(--accent)';
+    inp().style.cursor='crosshair'; showNotif('Mod Pilih ON — tap baris mula','info');
+  } else {
+    btn.style.background='';btn.style.color='';btn.style.borderColor='';
+    inp().style.cursor=''; document.getElementById('sel-bar').classList.remove('show');
+  }
+}
+function setupLongPress(){
+  var el=inp();
+  el.addEventListener('touchend',function(e){
+    if(!S.selMode) return; e.preventDefault();
+    var t=e.changedTouches[0],line=lineAt(t.clientY);
+    if(S.selStart===-1){ S.selStart=line; showNotif('Baris '+(line+1)+' — tap baris akhir','info'); }
+    else { S.selEnd=line; applyLineSelect(); updateSelBar(); }
+  });
+  el.addEventListener('click',function(e){
+    if(!S.selMode) return;
+    var line=lineAt(e.clientY);
+    if(S.selStart===-1){ S.selStart=line; showNotif('Baris '+(line+1)+' — tap baris akhir','info'); }
+    else { S.selEnd=line; applyLineSelect(); updateSelBar(); }
+  });
+}
+function applyLineSelect(){
+  var el=inp(),lines=el.value.split('\n');
+  var s=Math.min(S.selStart,S.selEnd),e=Math.max(S.selStart,S.selEnd);
+  var start=0; for(var i=0;i<s;i++) start+=lines[i].length+1;
+  var end=start; for(var j=s;j<=e;j++) end+=lines[j].length+1;
+  end=Math.min(end-1,el.value.length);
+  el.setSelectionRange(start,end); el.focus();
+}
+function updateSelBar(){
+  var s=Math.min(S.selStart,S.selEnd),e=Math.max(S.selStart,S.selEnd);
+  document.getElementById('sel-bar').classList.add('show');
+  document.getElementById('sel-bar-info').textContent=(e-s+1)+' baris (B'+(s+1)+'—B'+(e+1)+')';
+}
+function clearSelection(){
+  S.selMode=false;S.selStart=-1;S.selEnd=-1;
+  document.getElementById('sel-bar').classList.remove('show');
+  var btn=document.getElementById('btn-pilih');
+  if(btn){btn.style.background='';btn.style.color='';btn.style.borderColor='';}
+  inp().style.cursor='';
+}
+function getSelText(){ var el=inp(); return el.value.substring(el.selectionStart,el.selectionEnd); }
+function copySelected(){
+  var txt=getSelText(); if(!txt){showNotif('Tiada teks dipilih','err');return;}
+  navigator.clipboard.writeText(txt).then(function(){showNotif('Disalin!','ok');clearSelection();});
+}
+function cutSelected(){
+  var txt=getSelText(); if(!txt){showNotif('Tiada teks dipilih','err');return;}
+  navigator.clipboard.writeText(txt).then(function(){
+    pushUndo(); var el=inp(),s=el.selectionStart,e=el.selectionEnd;
+    el.value=el.value.substring(0,s)+el.value.substring(e);
+    el.setSelectionRange(s,s); updateAll(); saveToStorage();
+    showNotif('Dipotong!','ok'); clearSelection();
+  });
+}
+function openReplaceFromSel(){
+  var txt=getSelText(); clearSelection(); openPanel('replace-panel');
+  if(txt) setTimeout(function(){document.getElementById('replace-find').value=txt;},350);
+}
+
+// ═══════════════════════════════════
+// UPLOAD / DOWNLOAD / PREVIEW
+// ═══════════════════════════════════
+function triggerUpload(){ document.getElementById('file-input').click(); }
+function handleFileUpload(e){
+  var file=e.target.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    pushUndo(); S.fileName=file.name; inp().value=ev.target.result;
+    updateAll(); saveToStorage(); saveRecent(file.name,ev.target.result);
+    showNotif('Dimuat: '+file.name,'ok');
+  };
+  reader.readAsText(file); e.target.value='';
+}
+function downloadFile(){
+  var content=inp().value; if(!content){showNotif('Tiada kandungan','err');return;}
+  var name=S.fileName||'fail-edit.html';
+  var blob=new Blob([content],{type:'text/plain;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a'); a.href=url; a.download=name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); showDropZone(); },500);
+  showNotif('Dimuat turun: '+name,'ok');
+}
+function previewHTML(){
+  var content=inp().value; if(!content){showNotif('Tiada kandungan','err');return;}
+  var blob=new Blob([content],{type:'text/html;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var tab=window.open(url,'_blank');
+  if(!tab){showNotif('Benarkan popup untuk preview','err');return;}
+  setTimeout(function(){URL.revokeObjectURL(url);},10000);
+  if(currentUser&&S.fileName){
+    saveFileToFirebase(S.fileName,content).then(function(){
+      showNotif('Preview dibuka + disimpan ke Firebase','ok');
+    }).catch(function(){
+      showNotif('Preview dibuka (gagal simpan)','err');
+    });
+  } else {
+    showNotif('Preview dibuka!','ok');
+  }
+}
+
+// DRAG DROP
+function setupDragDrop(){
+  var wrap=document.getElementById('editor-wrap');
+  var dz=document.getElementById('drop-zone');
+  function handleDrop(e){
+    e.preventDefault(); dz.classList.remove('show','drag-over');
+    var file=e.dataTransfer.files[0]; if(!file) return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      pushUndo(); S.fileName=file.name; inp().value=ev.target.result;
+      updateAll(); saveToStorage(); saveRecent(file.name,ev.target.result);
+      showNotif('Dibuka: '+file.name,'ok');
+    };
+    reader.readAsText(file);
+  }
+  wrap.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('show','drag-over');});
+  wrap.addEventListener('dragleave',function(e){if(!wrap.contains(e.relatedTarget))dz.classList.remove('show','drag-over');});
+  wrap.addEventListener('drop',handleDrop);
+  dz.addEventListener('dragover',function(e){e.preventDefault();dz.classList.add('drag-over');});
+  dz.addEventListener('drop',handleDrop);
+}
+function showDropZone(){
+  var dz=document.getElementById('drop-zone'); dz.classList.add('show');
+  setTimeout(function(){dz.classList.remove('show');},6000);
+}
+
+// ═══════════════════════════════════
+// COPY ALL / PASTE ALL
+// ═══════════════════════════════════
+function copyAll(){
+  var content=inp().value; if(!content){showNotif('Tiada kandungan','err');return;}
+  navigator.clipboard.writeText(content).then(function(){showNotif('Semua kod disalin!','ok');});
+}
+function pasteAll(){
+  navigator.clipboard.readText().then(function(text){
+    if(!text){showNotif('Clipboard kosong','err');return;}
+    if(!confirm('Tampal akan GANTIKAN semua kod semasa. Teruskan?')) return;
+    pushUndo(); inp().value=text; updateAll(); saveToStorage();
+    showNotif('Kod ditampal!','ok');
+  }).catch(function(){showNotif('Benarkan akses clipboard','err');});
+}
+
+// ═══════════════════════════════════
+// NORMALIZE (flexible search)
+// ═══════════════════════════════════
+function nws(s){ return s.trim().replace(/\s+/g,' '); }
+
+// ═══════════════════════════════════
+// SEARCH
+// ═══════════════════════════════════
+var _st=null,_foundResults=[];
+function liveHighlight(){ clearTimeout(_st); _st=setTimeout(_liveHighlight,300); }
+function _liveHighlight(){
+  var findTxt=document.getElementById('replace-find').value;
+  var status=document.getElementById('find-status');
+  document.getElementById('replace-preview').style.display='none';
+  _foundResults=[];
+  if(!findTxt){status.textContent='';return;}
+  _foundResults=flexFind(inp().value,findTxt);
+  if(!_foundResults.length){ status.style.color='var(--red)'; status.textContent='✕ Tidak dijumpai'; return; }
+  status.style.color='var(--green)'; status.textContent='✓ '+_foundResults.length+' kejadian — tekan ↵ Pergi';
+}
+function jumpToFound(){
+  if(!_foundResults.length){showNotif('Isi kotak cari dahulu','err');return;}
+  var r=_foundResults[0],el=inp(),lines=el.value.split('\n'),pos=0;
+  for(var i=0;i<r.startLine;i++) pos+=lines[i].length+1;
+  var endPos=pos;
+  for(var j=r.startLine;j<=r.endLine;j++) endPos+=lines[j].length+1;
+  endPos=Math.min(endPos-1,el.value.length);
+  el.focus(); el.setSelectionRange(pos,endPos);
+  setTimeout(function(){ el.scrollTop=Math.max(0,(r.startLine-3)*22); afterScroll(); },30);
+  showNotif('Baris '+(r.startLine+1)+' — '+(r.endLine+1),'info');
+}
+
+// ═══════════════════════════════════
+// FLEXIBLE FIND
+// ═══════════════════════════════════
+function flexFind(content,findTxt){
+  var cLines=content.split('\n');
+  var qLines=findTxt.split('\n').map(nws);
+  while(qLines.length&&qLines[0]==='') qLines.shift();
+  while(qLines.length&&qLines[qLines.length-1]==='') qLines.pop();
+  if(!qLines.length) return [];
+  var results=[];
+  if(qLines.length===1){
+    var q=qLines[0].toLowerCase();
+    cLines.forEach(function(line,idx){
+      if(nws(line).toLowerCase().includes(q)) results.push({startLine:idx,endLine:idx,origLines:[line]});
+    });
+  } else {
+    for(var i=0;i<=cLines.length-qLines.length;i++){
+      var ok=true;
+      for(var j=0;j<qLines.length;j++){
+        if(!nws(cLines[i+j]).toLowerCase().includes(qLines[j].toLowerCase())){ok=false;break;}
+      }
+      if(ok) results.push({startLine:i,endLine:i+qLines.length-1,origLines:cLines.slice(i,i+qLines.length)});
+    }
+  }
+  return results;
+}
+
+// ═══════════════════════════════════
+// REPLACE
+// ═══════════════════════════════════
+function previewReplace(){
+  var findTxt=document.getElementById('replace-find').value;
+  var withTxt=document.getElementById('replace-with').value;
+  var div=document.getElementById('replace-preview');
+  if(!findTxt){showNotif('Isi teks untuk dicari','err');return;}
+  var found=flexFind(inp().value,findTxt);
+  if(!found.length){showNotif('Teks tidak dijumpai','err');div.style.display='none';return;}
+  document.getElementById('preview-old').textContent=found[0].origLines.join('\n');
+  document.getElementById('preview-new').textContent=withTxt;
+  document.getElementById('preview-count').textContent=found.length+' kejadian akan diganti';
+  div.style.display='block';
+}
+function doReplace(){
+  var findTxt=document.getElementById('replace-find').value;
+  var withTxt=document.getElementById('replace-with').value;
+  var el=inp();
+  if(!findTxt){showNotif('Isi teks untuk dicari','err');return;}
+  var found=flexFind(el.value,findTxt);
+  if(!found.length){showNotif('Teks tidak dijumpai!','err');return;}
+  saveBackup(); pushUndo();
+  var cLines=el.value.split('\n'),offset=0,firstNewStart=-1,firstNewEnd=-1;
+  found.forEach(function(r,idx){
+    var s=r.startLine-offset,e=r.endLine-offset,rep=withTxt.split('\n');
+    cLines=cLines.slice(0,s).concat(rep).concat(cLines.slice(e+1));
+    if(idx===0){firstNewStart=s;firstNewEnd=s+rep.length-1;}
+    offset+=(r.endLine-r.startLine+1)-rep.length;
+  });
+  el.value=cLines.join('\n'); updateAll(); saveToStorage();
+  if(firstNewStart>=0){
+    var lines=el.value.split('\n'),pos=0;
+    for(var i=0;i<firstNewStart;i++) pos+=lines[i].length+1;
+    var endPos=pos;
+    for(var j=firstNewStart;j<=firstNewEnd;j++) endPos+=lines[j].length+1;
+    endPos=Math.min(endPos-1,el.value.length);
+    el.focus(); el.setSelectionRange(pos,endPos);
+    setTimeout(function(){el.scrollTop=Math.max(0,(firstNewStart-3)*22);afterScroll();},30);
+    document.getElementById('replace-done-msg').textContent='✓ '+found.length+' gantian — Baris '+(firstNewStart+1);
+    document.getElementById('unhighlight-bar').style.display='block';
+  }
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('open');});
+  document.getElementById('overlay').classList.remove('show');
+  showNotif(found.length+' gantian berjaya!','ok');
+}
+function rpShowTab(tab){
+  var isSingle=tab==='single';
+  document.getElementById('rp-single-view').style.display=isSingle?'block':'none';
+  document.getElementById('rp-bulk-view').style.display=isSingle?'none':'block';
+  document.getElementById('rp-footer-single').style.display=isSingle?'flex':'none';
+  document.getElementById('rp-footer-bulk').style.display=isSingle?'none':'flex';
+  document.getElementById('rp-tab-single').classList.toggle('active',isSingle);
+  document.getElementById('rp-tab-bulk').classList.toggle('active',!isSingle);
+}
+
+function clearReplace(){
+  document.getElementById('replace-find').value='';
+  document.getElementById('replace-with').value='';
+  document.getElementById('replace-preview').style.display='none';
+  document.getElementById('find-status').textContent='';
+  _foundResults=[];
+}
+
+var _bulkTimer=null;
+function clearBulk(){
+  document.getElementById('bulk-input').value='';
+  document.getElementById('bulk-status').textContent='';
+}
+
+function pasteToBulk(){
+  navigator.clipboard.readText().then(function(text){
+    if(!text){showNotif('Clipboard kosong','err');return;}
+    document.getElementById('bulk-input').value=text;
+    document.getElementById('bulk-status').textContent='';
+    liveBulkPreview();
+    showNotif('Ditampal!','ok');
+  }).catch(function(){showNotif('Benarkan akses clipboard','err');});
+}
+
+function liveBulkPreview(){
+  clearTimeout(_bulkTimer);
+  _bulkTimer=setTimeout(_liveBulkPreview,400);
+}
+
+function _liveBulkPreview(){
+  var raw=document.getElementById('bulk-input').value;
+  var status=document.getElementById('bulk-status');
+  if(!raw.trim()){status.textContent='';return;}
+  var pairs=parseBulkInput(raw);
+  if(!pairs.length){
+    status.style.color='var(--text2)';
+    status.textContent='Tiada blok Cari/Ganti dijumpai';
+    return;
+  }
+  var content=inp().value;
+  var jumpa=0,tidakJumpa=0;
+  pairs.forEach(function(p){
+    var found=flexFind(content,p.find);
+    if(found.length) jumpa++; else tidakJumpa++;
+  });
+  var msg='';
+  if(jumpa&&!tidakJumpa){
+    status.style.color='var(--green)';
+    msg='✓ '+jumpa+' blok dijumpai';
+  } else if(jumpa&&tidakJumpa){
+    status.style.color='var(--amber)';
+    msg='✓ '+jumpa+' blok dijumpai  |  ✕ '+tidakJumpa+' blok tidak selaras';
+  } else {
+    status.style.color='var(--red)';
+    msg='✕ '+tidakJumpa+' blok tidak dijumpai';
+  }
+  status.textContent=msg;
+}
+
+function parseBulkInput(raw){
+  var pairs=[];
+  var lines=raw.split('\n');
+  var mode=null,findLines=[],withLines=[];
+  for(var i=0;i<lines.length;i++){
+    var trimmed=lines[i].trim().toLowerCase();
+    if(trimmed==='cari:'){
+      if(mode==='ganti'&&findLines.length) pairs.push({find:findLines.join('\n'),with:withLines.join('\n')});
+      mode='cari'; findLines=[]; withLines=[];
+    } else if(trimmed==='ganti:'){
+      mode='ganti'; withLines=[];
+    } else {
+      if(mode==='cari') findLines.push(lines[i]);
+      else if(mode==='ganti') withLines.push(lines[i]);
+    }
+  }
+  if(mode==='ganti'&&findLines.length) pairs.push({find:findLines.join('\n'),with:withLines.join('\n')});
+  return pairs;
+}
+
+function doBulkReplace(){
+  var raw=document.getElementById('bulk-input').value;
+  var status=document.getElementById('bulk-status');
+  if(!raw.trim()){showNotif('Tampal blok Cari/Ganti dahulu','err');return;}
+  var pairs=parseBulkInput(raw);
+  if(!pairs.length){
+    status.style.color='var(--red)';
+    status.textContent='✕ Tiada blok Cari/Ganti dijumpai — pastikan format betul';
+    return;
+  }
+  saveBackup(); pushUndo();
+  var content=inp().value;
+  var totalGanti=0,tidakJumpa=[];
+  pairs.forEach(function(p){
+    var found=flexFind(content,p.find);
+    if(!found.length){tidakJumpa.push(p.find.substring(0,40).trim());return;}
+    var cLines=content.split('\n'),offset=0;
+    found.forEach(function(r){
+      var s=r.startLine-offset,e=r.endLine-offset,rep=p.with.split('\n');
+      cLines=cLines.slice(0,s).concat(rep).concat(cLines.slice(e+1));
+      offset+=(r.endLine-r.startLine+1)-rep.length;
+    });
+    content=cLines.join('\n');
+    totalGanti+=found.length;
+  });
+  inp().value=content;
+  updateAll(); saveToStorage();
+  var msg='✓ '+totalGanti+' gantian dari '+pairs.length+' blok berjaya';
+  if(tidakJumpa.length) msg+=' | ✕ '+tidakJumpa.length+' tidak jumpa';
+  status.style.color=tidakJumpa.length?'var(--amber)':'var(--green)';
+  status.textContent=msg;
+  showNotif(totalGanti+' gantian berjaya!','ok');
+}
+
+function unhighlightDone(){
+  var el=inp(); el.setSelectionRange(el.selectionStart,el.selectionStart);
+  document.getElementById('unhighlight-bar').style.display='none';
+}
+
+// ═══════════════════════════════════
+// UNDO / REDO
+// ═══════════════════════════════════
+function getUndoStack(){
+  var key=S.fileName||'__free__';
+  if(!S.undoStacks[key]) S.undoStacks[key]=[];
+  return S.undoStacks[key];
+}
+function getRedoStack(){
+  var key=S.fileName||'__free__';
+  if(!S.redoStacks[key]) S.redoStacks[key]=[];
+  return S.redoStacks[key];
+}
+function pushUndo(){
+  var el=inp(),stack=getUndoStack();
+  stack.push({v:el.value,s:el.selectionStart});
+  if(stack.length>50) stack.shift();
+  S.redoStacks[S.fileName||'__free__']=[];
+}
+function doUndo(){
+  var stack=getUndoStack();
+  if(!stack.length){showNotif('Tiada lagi undo','info');return;}
+  var el=inp(),rstack=getRedoStack();
+  rstack.push({v:el.value,s:el.selectionStart});
+  var p=stack.pop(); el.value=p.v; el.setSelectionRange(p.s,p.s);
+  updateAll(); saveToStorage(); showUndoToast('Undo ✓');
+}
+function doRedo(){
+  var rstack=getRedoStack();
+  if(!rstack.length){showNotif('Tiada lagi redo','info');return;}
+  var el=inp(),stack=getUndoStack();
+  stack.push({v:el.value,s:el.selectionStart});
+  var p=rstack.pop(); el.value=p.v; el.setSelectionRange(p.s,p.s);
+  updateAll(); saveToStorage(); showUndoToast('Redo ✓');
+}
+function showUndoToast(msg){
+  var t=document.getElementById('undo-toast'); t.textContent=msg; t.style.opacity='1';
+  setTimeout(function(){t.style.opacity='0';},1200);
+}
+
+// ═══════════════════════════════════
+// JUMP TO LINE
+// ═══════════════════════════════════
+function jumpToLine(){
+  var num=prompt('Pergi ke baris:'); if(!num||isNaN(num)) return;
+  var n=parseInt(num)-1,el=inp(),lines=el.value.split('\n');
+  n=Math.max(0,Math.min(n,lines.length-1));
+  var pos=0; for(var i=0;i<n;i++) pos+=lines[i].length+1;
+  el.focus(); el.setSelectionRange(pos,pos+lines[n].length);
+  setTimeout(function(){el.scrollTop=Math.max(0,(n-3)*22);afterScroll();},30);
+  showNotif('Baris '+(n+1),'info');
+}
+
+// ═══════════════════════════════════
+// FILES PANEL
+// ═══════════════════════════════════
+function showTab(tab){
+  S.currentTab=tab;
+  document.querySelectorAll('.nav-tab').forEach(function(t,i){
+    t.classList.toggle('active',(i===0&&tab==='cloud')||(i===1&&tab==='local')||(i===2&&tab==='backup'));
+  });
+  renderFilesBody();
+}
+
+function renderFilesBody(){
+  var body=document.getElementById('files-body');
+  body.innerHTML='<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px">Memuatkan...</div>';
+  if(S.currentTab==='cloud'){
+    loadCloudFiles(function(files){
+      if(!files.length){body.innerHTML='<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px">Tiada fail dalam Firebase. Tekan ☁ untuk simpan fail semasa.</div>';return;}
+      var html='';
+      files.forEach(function(f){
+        var sz=f.size>1024?Math.round(f.size/1024)+' KB':f.size+' B';
+        var isActive=f.name===S.fileName;
+        var dt='';
+        if(f.updatedAt&&f.updatedAt.toDate){
+          var d=f.updatedAt.toDate();
+          dt=' · '+d.toLocaleDateString('ms-MY')+' '+d.toLocaleTimeString('ms-MY',{hour:'2-digit',minute:'2-digit',hour12:true});
+        }
+        var icon=f.inStorage?'🗄':'☁';
+        var storageTag=f.inStorage?'<span style="font-size:10px;color:var(--amber);margin-left:4px">Storage</span>':'';
+        html+='<div class="file-item'+(isActive?' active-file':'')+'"><span class="file-icon">'+icon+'</span><div class="file-info"><div class="file-name">'+f.name+storageTag+'</div><div class="file-meta">'+sz+dt+'</div></div><button class="file-act" onclick="loadCloudFile(\''+f.name+'\')">Buka</button><button class="file-act" style="border-color:var(--amber);color:var(--amber)" onclick="renameCloudFile(\''+f.name+'\')">✏</button><button class="file-del" onclick="deleteCloudFile(\''+f.name+'\')">🗑</button></div>';
+      });
+      body.innerHTML=html;
+    });
+  } else if(S.currentTab==='local'){
+    var list=getRecent();
+    if(!list.length){body.innerHTML='<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px">Tiada fail tempatan</div>';return;}
+    var html='<div class="storage-note"><strong>📱 localStorage:</strong> Cache tempatan sahaja. Guna ☁ untuk simpan ke cloud.</div>';
+    list.forEach(function(f,i){
+      var sz=f.size>1024?Math.round(f.size/1024)+' KB':f.size+' B';
+      var d=new Date(f.ts);
+      var dt=d.toLocaleDateString('ms-MY')+' '+d.toLocaleTimeString('ms-MY',{hour:'2-digit',minute:'2-digit'});
+      html+='<div class="file-item"><span class="file-icon">📄</span><div class="file-info"><div class="file-name">'+f.name+'</div><div class="file-meta">'+sz+' · '+dt+'</div></div><button class="file-act" onclick="loadLocalFile('+i+')">Buka</button></div>';
+    });
+    body.innerHTML=html;
+  } else {
+    var backups=getBackups();
+    if(!backups.length){body.innerHTML='<div style="text-align:center;color:var(--text2);font-size:13px;padding:20px">Tiada backup. Auto-backup dibuat setiap kali ganti kod.</div>';return;}
+    var html='';
+    backups.forEach(function(b,i){
+      var sz=b.content.length>1024?Math.round(b.content.length/1024)+' KB':b.content.length+' B';
+      var d=new Date(b.ts);
+      var dt=d.toLocaleDateString('ms-MY')+' '+d.toLocaleTimeString('ms-MY',{hour:'2-digit',minute:'2-digit'});
+      html+='<div class="file-item"><span class="file-icon">🔄</span><div class="file-info"><div class="file-name">'+b.name+'</div><div class="file-meta">'+sz+' · '+dt+'</div></div><button class="file-act" onclick="restoreBackup('+i+')">Pulih</button></div>';
+    });
+    body.innerHTML=html;
+  }
+}
+
+function loadLocalFile(idx){
+  var f=getRecent()[idx]; if(!f) return;
+  pushUndo(); S.fileName=f.name; inp().value=f.content;
+  updateAll(); saveToStorage(); closeAllPanels();
+  showNotif('Dibuka: '+f.name,'ok');
+}
+function restoreBackup(idx){
+  var b=getBackups()[idx]; if(!b) return;
+  if(!confirm('Pulih backup ini?')) return;
+  pushUndo(); S.fileName=b.name; inp().value=b.content;
+  updateAll(); saveToStorage(); closeAllPanels();
+  showNotif('Backup dipulihkan!','ok');
+}
+
+// ═══════════════════════════════════
+// PANELS
+// ═══════════════════════════════════
+function openPanel(id){
+  closeAllPanels();
+  setTimeout(function(){
+    document.getElementById(id).classList.add('open');
+    document.getElementById('overlay').classList.add('show');
+    if(id==='files-panel') renderFilesBody();
+if(id==='github-panel'){
+      ghLoadFromFirebase(function(){ ghShowTab('list'); });
+    }
+    if(id==='replace-panel'){
+      document.getElementById('replace-preview').style.display='none';
+      setTimeout(function(){document.getElementById('replace-find').focus();},350);
+    }
+  },50);
+}
+function closeAllPanels(){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('open');});
+  document.getElementById('overlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════
+// NOTIFICATION
+// ═══════════════════════════════════
+var _nt=null;
+function showNotif(msg,type){
+  var el=document.getElementById('notif');
+  el.textContent=msg; el.className='show '+(type||'info');
+  clearTimeout(_nt); _nt=setTimeout(function(){el.className='';},2500);
+}
+
+// ═══════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════
+document.addEventListener('keydown',function(e){
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){doUndo();e.preventDefault();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='y'){doRedo();e.preventDefault();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='f'){openPanel('replace-panel');e.preventDefault();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='h'){openPanel('replace-panel');e.preventDefault();}
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){downloadFile();e.preventDefault();}
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js')
+      .then(function(){console.log('SW ok');})
+      .catch(function(e){console.log('SW err:',e);});
+  });
+}
+</script>
 </body>
 </html>
-
